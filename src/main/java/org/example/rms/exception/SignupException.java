@@ -1,26 +1,14 @@
 package org.example.rms.exception;
 
+import org.springframework.http.HttpStatus;
+
 import java.util.HashMap;
 import java.util.Map;
 
-public class SignupException extends RuntimeException {
-    private final Map<String, String> fieldErrors = new HashMap<>();
-
-    public SignupException(String message) {
+public class SignupException extends AbstractHttpStatusException {
+    public SignupException(HttpStatus httpStatus, String message) {
         super(message);
     }
 
-    public SignupException() {}
 
-    public void addError(String fielddName, String fieldValue) {
-        fieldErrors.put(fielddName, fieldValue);
-    }
-
-    public Map<String, String> getFieldErrors() {
-        return fieldErrors;
-    }
-
-    public boolean hasErrors() {
-        return !fieldErrors.isEmpty();
-    }
 }

@@ -5,6 +5,7 @@ import jakarta.validation.Valid;
 import org.example.rms.dto.authentication.*;
 import org.example.rms.dto.response.ApiResponse;
 import org.example.rms.exception.LoginException;
+import org.example.rms.exception.ResendOtpException;
 import org.example.rms.exception.SignupException;
 import org.example.rms.service.AuthService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,7 +29,6 @@ public class AuthController {
 
         return ApiResponse
                 .builder()
-                    .code(200)
                     .success(true)
                     .message("Login successful")
                     .payload(response)
@@ -37,42 +37,60 @@ public class AuthController {
 
 
     @PostMapping("/signup/candidate")
-    @ResponseStatus(HttpStatus.CREATED)
+    @ResponseStatus(HttpStatus.OK)
     public ApiResponse<?> candidateSignup(@Valid @RequestBody SignupRequest request) throws SignupException {
         SignupResponse response = authService.signupCandidate(request);
         return ApiResponse
                 .builder()
-                    .code(201)
                     .success(true)
-                    .message("Signup successful")
+                    .message("Registration successful! Please verify the email to complete the process")
                     .payload(response)
                 .build();
     }
 
     @PostMapping("/signup/recruiter")
-    @ResponseStatus(HttpStatus.CREATED)
+    @ResponseStatus(HttpStatus.OK)
     public ApiResponse<?> recruiterSignup(@Valid @RequestBody SignupRequest request) throws SignupException {
         SignupResponse response = authService.signupRecruiter(request);
         return ApiResponse
                 .builder()
-                    .code(201)
                     .success(true)
-                    .message("Signup successful")
+                    .message("Registration successful! Please verify the email to complete the process")
                     .payload(response)
+                .build();
+    }
+
+    @PostMapping("/signup/verify")
+    @ResponseStatus(HttpStatus.OK)
+    public ApiResponse<?> verifySignup(@Valid @RequestBody VerifyRequest request) throws SignupException {
+        VerifyResponse response = authService.verify(request);
+        return ApiResponse
+                .builder()
+                    .success(true)
+                    .message("Verify successful")
                 .build();
     }
 
     @PostMapping("/refresh")
     @ResponseStatus(HttpStatus.OK)
     public ApiResponse<?> refresh(@CookieValue(name = "refresh_token") String refreshToken) {
-        System.out.println("Refresh token: " + refreshToken);
         RefreshResponse refreshResponse = authService.refreshToken(refreshToken);
         return ApiResponse
                 .builder()
-                    .code(200)
                     .success(true)
                     .message("Refresh token successful")
                     .payload(refreshResponse)
+                .build();
+    }
+
+    @PostMapping("/resend-otp")
+    @ResponseStatus(HttpStatus.OK)
+    public ApiResponse<?> resendOtp(@Valid @RequestBody ResendOtpRequest request) throws ResendOtpException {
+        ResendOtpResponse response = authService.resendOtp(request);
+        return ApiResponse
+                .builder()
+                    .success(true)
+                    .message("Resend otp successful")
                 .build();
     }
 }

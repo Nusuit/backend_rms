@@ -1,9 +1,8 @@
 package org.example.rms;
 
+import org.example.rms.dto.authentication.ResendOtpResponse;
 import org.example.rms.dto.response.ApiResponse;
-import org.example.rms.exception.ErrorDetail;
-import org.example.rms.exception.LoginException;
-import org.example.rms.exception.SignupException;
+import org.example.rms.exception.*;
 import org.example.rms.security.RmsCode;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -23,15 +22,14 @@ import java.util.List;
 public class GlobalExceptionHandler {
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ApiResponse<?> handleMethodArgumentNotValidException(MethodArgumentNotValidException ex) {
-        List<ErrorDetail> errorDetails = new ArrayList<>();
+        List<ValidationErrorDetail> errorDetails = new ArrayList<>();
 
         ex.getBindingResult().getFieldErrors().forEach(error -> {
-            errorDetails.add(new ErrorDetail(error.getField(), error.getDefaultMessage(), null));
+            errorDetails.add(new ValidationErrorDetail(error.getField(), error.getDefaultMessage(), null));
         });
 
         return ApiResponse
                 .builder()
-                    .code(RmsCode.ValidationError.getCode())
                     .success(false)
                     .message(RmsCode.ValidationError.getMessage())
                     .errors(errorDetails)
@@ -40,35 +38,29 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ApiResponse<?>> handleException(Exception e) {
-
+        System.out.println(e);
         return null;
     }
 
     @ExceptionHandler(LoginException.class)
-    @ResponseStatus(HttpStatus.UNAUTHORIZED)
-    public ApiResponse<?> handleException(LoginException e) {
+    public ResponseEntity<ApiResponse<?>> handleException(LoginException e) {
         ApiResponse<?> apiResponse = ApiResponse
                 .builder()
-                    .code(RmsCode.IncorrectUsernameOrPassword.getCode())
                     .success(false)
-                    .message("Username or password incorrect ")
+                    .message("Username or password incorrect")
                 .build();
-        return apiResponse;
+        return ResponseEntity.status(e.getHttpStatus()).body(apiResponse);
     }
 
     @ExceptionHandler(SignupException.class)
-    @ResponseStatus(HttpStatus.CONFLICT)
-    public ApiResponse<?> handleException(SignupException e) {
-        List<ErrorDetail> errorDetails = new ArrayList<>();
-        e.getFieldErrors().forEach((field, error) -> {errorDetails.add(new ErrorDetail(field, error, null));});
-        return ApiResponse
-                .builder()
-                    .code(RmsCode.CanNotCreateUser.getCode())
-                    .success(false)
-                    .message("Cannot create user")
-                    .errors(errorDetails)
-                .build();
+    public ResponseEntity<ApiResponse<?>> handleException(SignupException e) {
+        ApiResponse<?> a = ApiResponse
+                    .builder()
+                        .success(false)
+                        .message(e.getMessage())
+                    .build();
 
+        return ResponseEntity.status(e.getHttpStatus()).body(a);
     }
 
 
@@ -77,7 +69,6 @@ public class GlobalExceptionHandler {
     public ApiResponse<?> handleException(AuthenticationException e) {
         return ApiResponse
                 .builder()
-                    .code(401)
                     .success(false)
                     .message("Authentication failed")
                 .build();
@@ -88,10 +79,39 @@ public class GlobalExceptionHandler {
     public ApiResponse<?> handleException(AuthorizationDeniedException e) {
         return ApiResponse
                 .builder()
-                    .code(403)
                     .success(false)
                     .message("Authorization failed")
                 .build();
     }
 
+    @ExceptionHandler(ResendOtpException.class)
+    public ResponseEntity<ApiResponse<?>> handleException(ResendOtpException e) {
+        ApiResponse<?> a = ApiResponse
+                .builder()
+                    .success(false)
+                    .message(e.getMessage())
+                    .payload(e.getWaitingTimeInSeconds() == 0 ? null : new ResendOtpResponse(e.getWaitingTimeInSeconds()))
+                .build();
+        return ResponseEntity.status(e.getHttpStatus()).body(a);
+    }
+
+    @ExceptionHandler(VerifyEmailException.class)
+    public ResponseEntity<ApiResponse<?>> handleException(VerifyEmailException e) {
+        ApiResponse a = ApiResponse
+                .builder()
+                    .success(false)
+                    .message(e.getMessage())
+                .build();
+        return ResponseEntity.status(e.getHttpStatus()).body(a);
+    }
+
+    @ExceptionHandler(RefreshTokenException.class)
+    public ResponseEntity<ApiResponse<?>> handleException(RefreshTokenException e) {
+        ApiResponse a = ApiResponse
+                .builder()
+                    .success(false)
+                    .message(e.getMessage())
+                .build();
+        return ResponseEntity.status(e.getHttpStatus()).body(a);
+    }
 }

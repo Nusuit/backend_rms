@@ -29,13 +29,14 @@ public class JwtAuthenticationProvider implements AuthenticationProvider {
         }
 
         String role = (String) claims.get("role");
+        String id = claims.getSubject();
 
         Collection<SimpleGrantedAuthority> authorities = null;
         if (role != null) {
             authorities = Collections.singletonList(new SimpleGrantedAuthority("ROLE_" + role));
         }
 
-        return new JwtAuthentication(auth.getToken(), authorities, true);
+        return new JwtAuthentication(auth.getToken(), new RmsUserDetail(Long.parseLong(id)), authorities, true);
     }
 
     @Override

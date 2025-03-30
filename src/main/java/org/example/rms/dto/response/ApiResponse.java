@@ -11,7 +11,7 @@ import java.util.List;
 @Builder
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class ApiResponse<P> {
-    private int code;
+    private Integer code;
 
     private boolean success;
 
@@ -20,13 +20,4 @@ public class ApiResponse<P> {
     private P payload;
 
     private List<?> errors;
-
-    public static <P> ApiResponse<P> success(P payload, String message) {
-        return ApiResponse
-                .<P>builder()
-                    .code(200)
-                    .message(message)
-                    .payload(payload)
-                .build();
-    }
 }

@@ -9,7 +9,7 @@ import lombok.Getter;
 @Builder
 @AllArgsConstructor
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class ErrorDetail {
+public class ValidationErrorDetail {
     private String field;
 
     private String message;

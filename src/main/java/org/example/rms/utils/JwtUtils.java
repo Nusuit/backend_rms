@@ -25,7 +25,7 @@ public class JwtUtils {
 
 
     public static String generateToken(User user, Map<String, String> claims, int durationInHour, SecretKey key) {
-        String subject = String.valueOf(user.getUserId());
+        String userId = String.valueOf(user.getUserId());
 
         LocalDateTime now = LocalDateTime.now();
         Date issuedAt = Date.from(now.atZone(ZoneId.systemDefault()).toInstant());
@@ -35,7 +35,7 @@ public class JwtUtils {
         String jwt = Jwts.builder()
                 .header().type("jwt")
                 .and()
-                .subject(subject)
+                .subject(userId)
                 .claim("role", user.getRole().getRoleName())
                 .claims(claims)
                 .issuedAt(issuedAt)
