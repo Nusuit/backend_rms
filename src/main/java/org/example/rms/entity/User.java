@@ -1,13 +1,13 @@
 package org.example.rms.entity;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 
 
-import java.util.HashSet;
-import java.util.Set;
+import java.time.LocalDateTime;
 
 @Data
 @NoArgsConstructor
@@ -29,10 +29,12 @@ public class User {
     @JoinColumn(name = "role_id")
     Role role;
 
+    @Enumerated(EnumType.ORDINAL)
+    private UserStatus status;
 
-    public User(String email, String password, Role role) {
-        this.password = password;
-        this.email = email;
-        this.role = role;
-    }
+    @CreationTimestamp
+    private LocalDateTime createdAt;
+
+    @UpdateTimestamp
+    private LocalDateTime updatedAt;
 }

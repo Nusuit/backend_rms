@@ -7,16 +7,18 @@ import java.util.Collection;
 
 public class JwtAuthentication extends AbstractAuthenticationToken {
     private final String token;
-
+    private final RmsUserDetail userDetail;
 
     public JwtAuthentication(String token, Collection<? extends GrantedAuthority> authorities) {
         super(authorities);
         this.token = token;
+        userDetail = null;
     }
 
-    public JwtAuthentication(String token, Collection<? extends GrantedAuthority> authorities, boolean authenticated) {
+    public JwtAuthentication(String token, RmsUserDetail userDetail, Collection<? extends GrantedAuthority> authorities, boolean authenticated) {
         super(authorities);
         this.token = token;
+        this.userDetail = userDetail;
         super.setAuthenticated(authenticated);
     }
 
@@ -31,6 +33,6 @@ public class JwtAuthentication extends AbstractAuthenticationToken {
 
     @Override
     public Object getPrincipal() {
-        return null;
+        return userDetail;
     }
 }

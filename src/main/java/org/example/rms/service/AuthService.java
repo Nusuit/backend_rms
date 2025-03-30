@@ -12,4 +12,8 @@ public interface AuthService {
     SignupResponse signupRecruiter(SignupRequest request);
 
     RefreshResponse refreshToken(String refreshToken);
+
+    ResendOtpResponse resendOtp(ResendOtpRequest request);
+
+    VerifyResponse verify(VerifyRequest request);
 }

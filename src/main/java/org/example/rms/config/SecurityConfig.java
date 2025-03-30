@@ -1,16 +1,15 @@
 package org.example.rms.config;
 
-import org.example.rms.security.RmsAuthenticationEntryPoint;
-import org.example.rms.security.JwtAuthenticationFilter;
-import org.example.rms.security.JwtAuthenticationProvider;
-import org.example.rms.security.RmsAccessDeniedHandler;
+import org.example.rms.security.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.ProviderManager;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.AuthenticationEntryPoint;
@@ -23,23 +22,31 @@ import org.springframework.web.servlet.HandlerExceptionResolver;
 public class SecurityConfig {
     private final JwtAuthenticationProvider jwtAuthenticationProvider;
     private final HandlerExceptionResolver handlerExceptionResolver;
+    private final OAuth2AuthenticationSuccessHandler oAuth2AuthenticationSuccessHandler;
 
     @Autowired
-    public SecurityConfig(JwtAuthenticationProvider jwtAuthenticationProvider, HandlerExceptionResolver handlerExceptionResolver) {
+    public SecurityConfig(JwtAuthenticationProvider jwtAuthenticationProvider,
+                          HandlerExceptionResolver handlerExceptionResolver,
+                          OAuth2AuthenticationSuccessHandler oAuth2AuthenticationSuccessHandler) {
         this.jwtAuthenticationProvider = jwtAuthenticationProvider;
         this.handlerExceptionResolver = handlerExceptionResolver;
+        this.oAuth2AuthenticationSuccessHandler = oAuth2AuthenticationSuccessHandler;
     }
 
     @Bean
+    @Order(1)
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
                 .csrf(csrf -> csrf.disable())
                 .httpBasic(httpBasic -> httpBasic.disable())
+//                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(authorizeRequests ->
-                        authorizeRequests.requestMatchers(HttpMethod.POST, "/api/auth/login", "/api/auth/signup/**", "/api/auth/refresh").permitAll()
+                        authorizeRequests
+                                .requestMatchers(HttpMethod.POST, "/api/auth/**").permitAll()
                                 .requestMatchers("/swagger-ui/index.html", "/swagger-ui/**", "/v3/api-docs/**", "/webjars/**").permitAll()
-                                .requestMatchers("/api/auth/google/**").permitAll()
-                                .anyRequest().hasRole("CANDIDATE")
+                                .requestMatchers("/test/candidate").hasRole("CANDIDATE")
+                                .requestMatchers("/test/recruiter").hasRole("RECRUITER")
+                                .anyRequest().authenticated()
 
 
                 )
@@ -48,6 +55,16 @@ public class SecurityConfig {
                         -> {
                     exceptionHandler.authenticationEntryPoint(this.RmsAuthenticationEntryPoint());
                     exceptionHandler.accessDeniedHandler(this.RmsAccessDeniedHandler());
+                })
+                .oauth2Login(oauth2 -> {
+                    oauth2
+                            .authorizationEndpoint(authorization -> authorization
+                                    .baseUri("/oauth2/authorize")
+                            )
+                            .redirectionEndpoint(redirection -> redirection
+                                    .baseUri("/api/auth/google/login")
+                            )
+                            .successHandler(oAuth2AuthenticationSuccessHandler);
                 })
                 ;
 
