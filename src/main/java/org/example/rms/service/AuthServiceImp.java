@@ -21,6 +21,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.support.TransactionTemplate;
+import org.thymeleaf.context.Context;
+import org.thymeleaf.spring6.SpringTemplateEngine;
 
 
 import java.time.Duration;
@@ -38,6 +40,7 @@ public class AuthServiceImp implements AuthService {
     private final PasswordEncoder passwordEncoder;
     private final EmailService emailService;
     private final TransactionTemplate transactionTemplate;
+    private final SpringTemplateEngine templateEngine;
 
 
     private static final String FROM = "rms.jobbridge@gmail.com";
@@ -103,7 +106,7 @@ public class AuthServiceImp implements AuthService {
             try {
                 unverifiedUserRepository.save(unverifiedUser);
             } catch (DataIntegrityViolationException e) {
-                throw new SignupException(HttpStatus.BAD_REQUEST, "This email has already been registered for verification");
+                throw new SignupException(HttpStatus.CONFLICT, "This email has already been registered for verification");
             }
 
             try {
@@ -297,7 +300,12 @@ public class AuthServiceImp implements AuthService {
     }
 
     private void sendOtpThroughEmail(String otp, String to) throws MessagingException {
-        MimeMessage message = emailService.createMimeMessage(FROM, to, VERIFIED_SUBJECT, otp);
+        Context context = new Context();
+        context.setVariable("otp", otp);
+        context.setVariable("to", to);
+        String content = templateEngine.process("email_verification", context);
+
+        MimeMessage message = emailService.createMimeMessage(FROM, to, VERIFIED_SUBJECT, content);
         emailService.sendEmail(message);
     }
 }

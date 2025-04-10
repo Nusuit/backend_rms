@@ -4,7 +4,6 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.springframework.context.annotation.Primary;
 
 import java.util.List;
 
@@ -15,28 +14,21 @@ import java.util.List;
 @NoArgsConstructor
 public class Recruiter {
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     Long id;
 
-    @OneToOne(cascade = {CascadeType.MERGE, CascadeType.PERSIST})
+    @OneToOne(fetch = FetchType.LAZY, cascade = {CascadeType.PERSIST, CascadeType.MERGE})
     @JoinColumn(name = "user_id")
     @MapsId
     User user;
 
     String name;
 
-    String phone;
+    String description;
 
-    String logo;
+    String profilePictureUrl;
 
-    String companyName;
-
-    String companyAddress;
-
-    String companyDescription;
-
-    String companyWebsite;
-
-    @OneToMany(mappedBy = "recruiter")
+    @OneToMany(mappedBy = "recruiter", cascade = {CascadeType.PERSIST, CascadeType.MERGE})
     List<Job> jobs;
 
 }

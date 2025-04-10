@@ -1,6 +1,7 @@
 package org.example.rms.entity;
 
-public enum UserGender {
+public enum Gender {
     MALE,
-    FEMALE
+    FEMALE,
+    OTHER
 }

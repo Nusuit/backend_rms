@@ -1,9 +1,8 @@
-package org.example.rms.dto.response;
+package org.example.rms.dto;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.Builder;
 import lombok.Getter;
-import org.example.rms.security.RmsCode;
 
 import java.util.List;
 
@@ -20,4 +19,12 @@ public class ApiResponse<P> {
     private P payload;
 
     private List<?> errors;
+
+    public static <P> ApiResponse<P> successBuild(P payload) {
+        return ApiResponse
+                .<P>builder()
+                .success(true)
+                .payload(payload)
+                .build();
+    }
 }

@@ -20,7 +20,7 @@ public class JwtAuthenticationProvider implements AuthenticationProvider {
     public Authentication authenticate(Authentication authentication) throws AuthenticationException {
         JwtAuthentication auth = (JwtAuthentication) authentication;
 
-        Claims claims = null;
+        Claims claims;
         try {
             Jwt<?, ?> jwt = JwtUtils.validateAccessToken(auth.getToken());
             claims = (Claims) jwt.getPayload();
@@ -36,7 +36,7 @@ public class JwtAuthenticationProvider implements AuthenticationProvider {
             authorities = Collections.singletonList(new SimpleGrantedAuthority("ROLE_" + role));
         }
 
-        return new JwtAuthentication(auth.getToken(), new RmsUserDetail(Long.parseLong(id)), authorities, true);
+        return new JwtAuthentication(auth.getToken(), new UserPrincipal(Long.parseLong(id)), authorities, true);
     }
 
     @Override

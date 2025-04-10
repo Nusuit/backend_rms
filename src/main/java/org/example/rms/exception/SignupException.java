@@ -7,7 +7,7 @@ import java.util.Map;
 
 public class SignupException extends AbstractHttpStatusException {
     public SignupException(HttpStatus httpStatus, String message) {
-        super(message);
+        super(httpStatus, message);
     }
 
 

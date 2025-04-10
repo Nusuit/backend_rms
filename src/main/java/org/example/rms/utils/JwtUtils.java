@@ -4,7 +4,6 @@ import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwt;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
-import org.example.rms.entity.Role;
 import org.example.rms.entity.User;
 
 import javax.crypto.SecretKey;
@@ -14,7 +13,6 @@ import java.time.ZoneId;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Set;
 
 public class JwtUtils {
     private static final SecretKey ACCESS_TOKEN_KEY = new SecretKeySpec(getAccessTokenKey().getBytes(), "HmacSHA256");
@@ -25,14 +23,14 @@ public class JwtUtils {
 
 
     public static String generateToken(User user, Map<String, String> claims, int durationInHour, SecretKey key) {
-        String userId = String.valueOf(user.getUserId());
+        String userId = String.valueOf(user.getId());
 
         LocalDateTime now = LocalDateTime.now();
         Date issuedAt = Date.from(now.atZone(ZoneId.systemDefault()).toInstant());
         LocalDateTime expirationTime = now.plusSeconds(durationInHour * 3600L);
         Date expiration = Date.from(expirationTime.atZone(ZoneId.systemDefault()).toInstant());
 
-        String jwt = Jwts.builder()
+        return Jwts.builder()
                 .header().type("jwt")
                 .and()
                 .subject(userId)
@@ -42,8 +40,6 @@ public class JwtUtils {
                 .expiration(expiration)
                 .signWith(key)
                 .compact();
-
-        return jwt;
     }
 
     public static String generateRefreshToken(User user) {

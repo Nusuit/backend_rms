@@ -1,14 +1,15 @@
 package org.example.rms.entity;
 
 import jakarta.persistence.*;
-import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.UpdateTimestamp;
+import lombok.Getter;
+import lombok.Setter;
 
-import java.time.LocalDateTime;
 
 
 @Entity
 @Table(name = "interviews")
+@Getter
+@Setter
 public class Interview {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -26,19 +27,9 @@ public class Interview {
     @JoinColumn(name = "schedule_id")
     InterviewSchedule schedule;
 
-    String type;
-
-    String interviewName;
 
     @Column(columnDefinition = "nvarchar2(255)")
-    String notes;
-
-    @CreationTimestamp
-    LocalDateTime createdAt;
-
-    @UpdateTimestamp
-    LocalDateTime updatedAt;
-
+    String note;
 }
 
 

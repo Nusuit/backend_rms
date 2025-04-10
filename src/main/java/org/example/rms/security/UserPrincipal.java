@@ -1,13 +1,13 @@
 package org.example.rms.security;
 
-public class RmsUserDetail {
+public class UserPrincipal {
     private final Long id;
 
-    public RmsUserDetail(Long id) {
+    public UserPrincipal(Long id) {
         this.id = id;
     }
 
-    public long getIdentify() {
+    public long getIdentity() {
         return id;
     }
 }

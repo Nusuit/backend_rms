@@ -3,7 +3,7 @@ package org.example.rms.controller;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import org.example.rms.dto.authentication.*;
-import org.example.rms.dto.response.ApiResponse;
+import org.example.rms.dto.ApiResponse;
 import org.example.rms.exception.LoginException;
 import org.example.rms.exception.ResendOtpException;
 import org.example.rms.exception.SignupException;
@@ -23,12 +23,12 @@ public class AuthController {
     }
 
     @PostMapping("/login")
-    public ApiResponse<?> login(@RequestBody LoginRequest loginRequest, HttpServletResponse httpResponse)
+    public ApiResponse<LoginResponse> login(@Valid @RequestBody LoginRequest loginRequest, HttpServletResponse httpResponse)
             throws LoginException {
         LoginResponse response = authService.login(loginRequest, httpResponse);
 
         return ApiResponse
-                .builder()
+                .<LoginResponse>builder()
                     .success(true)
                     .message("Login successful")
                     .payload(response)
@@ -63,7 +63,7 @@ public class AuthController {
     @PostMapping("/signup/verify")
     @ResponseStatus(HttpStatus.OK)
     public ApiResponse<?> verifySignup(@Valid @RequestBody VerifyRequest request) throws SignupException {
-        VerifyResponse response = authService.verify(request);
+        authService.verify(request);
         return ApiResponse
                 .builder()
                     .success(true)
@@ -86,7 +86,7 @@ public class AuthController {
     @PostMapping("/resend-otp")
     @ResponseStatus(HttpStatus.OK)
     public ApiResponse<?> resendOtp(@Valid @RequestBody ResendOtpRequest request) throws ResendOtpException {
-        ResendOtpResponse response = authService.resendOtp(request);
+        authService.resendOtp(request);
         return ApiResponse
                 .builder()
                     .success(true)

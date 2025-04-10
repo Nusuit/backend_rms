@@ -5,8 +5,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import java.time.LocalDateTime;
-import java.util.ArrayList;
+import java.time.LocalDate;
 import java.util.List;
 
 @Entity
@@ -16,29 +15,33 @@ import java.util.List;
 @NoArgsConstructor
 public class Candidate {
     @Id
-    Long candidateId;
+    Long id;
 
     @MapsId
-    @OneToOne(cascade = { CascadeType.REMOVE })
-    @JoinColumn(name = "user_id")
+    @OneToOne(cascade = { CascadeType.MERGE, CascadeType.PERSIST }, fetch = FetchType.LAZY)
+    @JoinColumn(name = "candidate_id")
     User user;
 
     String name;
 
     @Enumerated(EnumType.STRING)
-    UserGender gender;
+    Gender gender;
 
-    LocalDateTime dateOfBirth;
+    LocalDate dateOfBirth;
 
     String phone;
 
-    String logoUrl;
+    String address;
+
+    String cvUrl;
+
+    String profilePictureUrl;
 
     String summary;
 
-    @OneToMany(mappedBy = "candidate")
+    @OneToMany(mappedBy = "candidate", cascade = {CascadeType.PERSIST, CascadeType.MERGE})
     List<Application> applications;
 
-    @OneToMany(mappedBy = "candidate")
+    @OneToMany(mappedBy = "candidate", cascade = {CascadeType.PERSIST, CascadeType.MERGE})
     List<Interview> interviews;
 }

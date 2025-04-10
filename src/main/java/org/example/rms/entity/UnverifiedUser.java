@@ -7,7 +7,7 @@ import org.hibernate.annotations.CreationTimestamp;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "users_verification")
+@Table(name = "unverified_users")
 @Getter
 @Setter
 @NoArgsConstructor

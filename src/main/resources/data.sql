@@ -1,12 +1,27 @@
-INSERT INTO roles (role_id, role_name) VALUES (1, 'CANDIDATE');
-INSERT INTO roles (role_id, role_name) VALUES (2, 'RECRUITER');
+-- INSERT INTO roles (role_id, role_name) VALUES (1, 'CANDIDATE');
+-- INSERT INTO roles (role_id, role_name) VALUES (2, 'RECRUITER');
 -----------------------------------------------------------------------------------------------------------------
--- Password123!
-INSERT INTO users (email, password, role_id) VALUES ('user1@example.com', '$2a$10$LB4U8.uVdk/MtRJtMyBfNet/ov411pQZDIyzR1cpwoHnWyaaJT44a', 2);
-INSERT INTO users (email, password) VALUES ('user2@example.com', '$2a$10$LB4U8.uVdk/MtRJtMyBfNet/ov411pQZDIyzR1cpwoHnWyaaJT44a');
-INSERT INTO users (email, password) VALUES ('user3@example.com', '$2a$10$LB4U8.uVdk/MtRJtMyBfNet/ov411pQZDIyzR1cpwoHnWyaaJT44a');
-INSERT INTO users (email, password) VALUES ('user4@example.com', '$2a$10$LB4U8.uVdk/MtRJtMyBfNet/ov411pQZDIyzR1cpwoHnWyaaJT44a');
-INSERT INTO users (email, password) VALUES ('user5@example.com', '$2a$10$LB4U8.uVdk/MtRJtMyBfNet/ov411pQZDIyzR1cpwoHnWyaaJT44a');
+-- INSERT INTO users (role_id, created_at, updated_at, email, password, refresh_token, status)
+-- VALUES ( 2, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 'recruiter@example.com', '$2a$10$NrwG73Qq.pITKoeYffbPn.pYQtVfPvIh.FLDi0qPdOsfxibV.XkuG', NULL, 'ACTIVE');
 
------------------------------------------------------------------------------------------------------------------
+-- INSERT INTO recruiters (user_id, description, name, profile_picture_url)
+-- VALUES (1, 'Experienced recruiter in IT sector', 'John Doe', NULL);
+-- -----------------------------------------------------------------------------------------------------------------
 
+-- -- Tạo 3 công việc, recruiter_id = 1 (đã có Recruiter)
+-- INSERT INTO jobs (status, created_at, deadline, recruiter_id, updated_at, benefit, description, requirement, salary, title)
+-- VALUES
+--     (0, CURRENT_TIMESTAMP, TIMESTAMP '2025-4-4 23:59:59', 1, CURRENT_TIMESTAMP, 'Flexible hours, remote work', 'Backend Developer for fintech', 'Java, Spring Boot, PostgreSQL', '2000-3000 USD', 'Backend Developer'),
+--     (0, CURRENT_TIMESTAMP, TIMESTAMP '2025-11-30 23:59:59', 1, CURRENT_TIMESTAMP, 'Health insurance, annual bonus', 'Frontend Developer for e-commerce', 'React, TypeScript, UI/UX', '1800-2500 USD', 'Frontend Developer'),
+--     (0, CURRENT_TIMESTAMP, TIMESTAMP '2025-10-31 23:59:59', 1, CURRENT_TIMESTAMP, 'Stock options, team retreats', 'Data Scientist for AI startup', 'Python, PyTorch, Big Data', '2500-4000 USD', 'Data Scientist');
+--
+--
+-- INSERT INTO skills (skill_name, is_required) VALUES ('Java', 1);
+-- INSERT INTO skills (skill_name, is_required) VALUES ('Spring Boot', 1);
+-- INSERT INTO skills (skill_name, is_required) VALUES ('SQL', 0);
+-- INSERT INTO skills (skill_name, is_required) VALUES ('Docker', 0);
+-- INSERT INTO skills (skill_name, is_required) VALUES ('Git', 1);
+--
+-- INSERT INTO job_skill (job_id, skill_id) VALUES (1, 1); -- Java
+-- INSERT INTO job_skill (job_id, skill_id) VALUES (1, 2); -- Spring Boot
+-- INSERT INTO job_skill (job_id, skill_id) VALUES (1, 3); -- SQL

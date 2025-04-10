@@ -1,7 +1,7 @@
 package org.example.rms;
 
 import org.example.rms.dto.authentication.ResendOtpResponse;
-import org.example.rms.dto.response.ApiResponse;
+import org.example.rms.dto.ApiResponse;
 import org.example.rms.exception.*;
 import org.example.rms.security.RmsCode;
 import org.springframework.http.HttpStatus;
@@ -111,6 +111,36 @@ public class GlobalExceptionHandler {
                 .builder()
                     .success(false)
                     .message(e.getMessage())
+                .build();
+        return ResponseEntity.status(e.getHttpStatus()).body(a);
+    }
+
+    @ExceptionHandler(ResourceNotFoundException.class)
+    public ResponseEntity<ApiResponse<?>> handleException(ResourceNotFoundException e) {
+        ApiResponse a = ApiResponse
+                .builder()
+                    .success(false)
+                    .message(e.getMessage())
+                .build();
+        return ResponseEntity.status(e.getHttpStatus()).body(a);
+    }
+
+    @ExceptionHandler(OperationException.class)
+    public ResponseEntity<ApiResponse<?>> handleException(OperationException e) {
+        ApiResponse a = ApiResponse
+                .builder()
+                .success(false)
+                .message(e.getMessage())
+                .build();
+        return ResponseEntity.status(e.getHttpStatus()).body(a);
+    }
+
+    @ExceptionHandler(AbstractHttpStatusException.class)
+    public ResponseEntity<ApiResponse<?>> handleException(AbstractHttpStatusException e) {
+        ApiResponse a = ApiResponse
+                .builder()
+                .success(false)
+                .message(e.getMessage())
                 .build();
         return ResponseEntity.status(e.getHttpStatus()).body(a);
     }
