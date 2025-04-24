@@ -16,6 +16,7 @@ public class CreateJobRequest {
     String benefit;
     String salary;
     LocalDateTime deadline;
+    String location;
     Set<SkillOfJobRequest> skills;
     List<StageOfJobRequest> stages;
 

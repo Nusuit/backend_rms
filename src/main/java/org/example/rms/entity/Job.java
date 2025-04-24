@@ -33,6 +33,8 @@ public class Job {
 
     LocalDateTime deadline;
 
+    String Location;
+
     @Enumerated(EnumType.STRING)
     JobStatus status;
 

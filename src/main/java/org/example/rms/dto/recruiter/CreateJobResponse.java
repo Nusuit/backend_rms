@@ -16,6 +16,7 @@ public class CreateJobResponse {
     String requirement;
     String benefit;
     String salary;
+    String location;
     LocalDateTime deadline;
     LocalDateTime createdAt;
     LocalDateTime updatedAt;
