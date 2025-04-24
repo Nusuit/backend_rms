@@ -7,6 +7,7 @@ import lombok.Setter;
 import java.time.LocalDateTime;
 
 @Entity
+@Table(name = "oauth2_users")
 @Getter
 @Setter
 public class OAuth2 {

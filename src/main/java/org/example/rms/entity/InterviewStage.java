@@ -5,6 +5,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 @Entity
+@Table(name = "interview_stages")
 @Getter
 @Setter
 public class InterviewStage {
