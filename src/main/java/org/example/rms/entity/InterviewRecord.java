@@ -7,29 +7,30 @@ import lombok.Setter;
 
 
 @Entity
-@Table(name = "interviews")
+@Table(name = "interviewees")
 @Getter
 @Setter
-public class Interview {
+public class InterviewRecord {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     Long id;
 
-    @OneToOne
+    @ManyToOne
     @JoinColumn(name = "application_id")
     Application application;
-
-    @ManyToOne
-    @JoinColumn(name = "candidate_id")
-    Candidate candidate;
 
     @ManyToOne
     @JoinColumn(name = "schedule_id")
     InterviewSchedule schedule;
 
+    @ManyToOne
+    @JoinColumn(name = "stage_id")
+    InterviewStage stage;
 
     @Column(columnDefinition = "nvarchar2(255)")
     String note;
+
+    boolean passed;
 }
 
 

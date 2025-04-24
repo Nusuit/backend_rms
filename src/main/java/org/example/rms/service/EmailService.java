@@ -4,6 +4,9 @@ import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 
 public interface EmailService {
-    public void sendEmail(MimeMessage message);
-    public MimeMessage createMimeMessage(String from, String to, String subject, String text) throws MessagingException;
+//    void sendEmail(MimeMessage message);
+//
+//    MimeMessage createMimeMessage(String from, String to, String subject, String text) throws MessagingException;
+
+    void sendEmail(String from, String to, String subject, String text) throws MessagingException;
 }

@@ -2,16 +2,18 @@ package org.example.rms.repo;
 
 import org.example.rms.entity.Application;
 import org.example.rms.entity.ApplicationStatus;
-import org.example.rms.entity.JobStatus;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 
 import java.util.List;
 import java.util.Optional;
 
-public interface ApplicationRepository extends JpaRepository<Application, Long> {
+public interface ApplicationRepository extends JpaRepository<Application, Long>, JpaSpecificationExecutor<Application> {
     List<Application> findByJobId(Long jobId);
+
+    Optional<Application> findByIdAndJobId(Long applicationId, Long jobId);
 
     Page<Application> findByJobIdAndJobRecruiterId(Long jobId, Long recruiterId, Pageable pageable);
 
@@ -30,4 +32,6 @@ public interface ApplicationRepository extends JpaRepository<Application, Long> 
     List<Application> findByCandidateId(Long candidateId);
 
     Optional<Application> findByIdAndCandidateId(Long applicationId, Long candidateId);
+
+    Page<Application> findByJobIdAndJobRecruiterIdAndStatusIn(Long jobId, Long recruiterId, List<ApplicationStatus> statuses, Pageable pageable);
 }

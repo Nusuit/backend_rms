@@ -20,7 +20,7 @@ public class CandidateController {
 
     @GetMapping("/jobs")
     public ApiResponse<?> getJobs(@AuthenticationPrincipal UserPrincipal userPrincipal, Pageable pageable) {
-        Page<JobForCandidateResponse> jobResponsePage = candidateService.getJobs(userPrincipal.getIdentity(),pageable);
+        Page<CandidateJobResponse> jobResponsePage = candidateService.getJobs(userPrincipal.getIdentity(),pageable);
 
         return ApiResponse.successBuild(jobResponsePage);
     }
@@ -35,14 +35,14 @@ public class CandidateController {
 
     @GetMapping("/applications/{applicationId}")
     public ApiResponse<?> getApplication(@AuthenticationPrincipal UserPrincipal userPrincipal, @PathVariable Long applicationId) {
-        ApplicationForCandidateResponse response = candidateService.getApplication(userPrincipal.getIdentity(), applicationId);
+        CandidateApplicationResponse response = candidateService.getApplication(userPrincipal.getIdentity(), applicationId);
 
         return ApiResponse.successBuild(response);
     }
 
     @GetMapping("/applications")
     public ApiResponse<?> getApplications(@AuthenticationPrincipal UserPrincipal userPrincipal) {
-        Page<ApplicationForCandidateResponse> response = candidateService.getApplications(userPrincipal.getIdentity(), Pageable.unpaged());
+        Page<CandidateApplicationResponse> response = candidateService.getApplications(userPrincipal.getIdentity(), Pageable.unpaged());
 
         return ApiResponse.successBuild(response);
     }

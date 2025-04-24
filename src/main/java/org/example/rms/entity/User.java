@@ -33,6 +33,8 @@ public class User {
     @Enumerated(EnumType.STRING)
     private UserStatus status;
 
+    private String oauth2Provider;
+
     @CreationTimestamp
     private LocalDateTime createdAt;
 

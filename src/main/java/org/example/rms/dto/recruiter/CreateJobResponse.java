@@ -4,11 +4,12 @@ import lombok.Builder;
 import lombok.Getter;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Set;
 
 @Getter
 @Builder
-public class JobForRecruiterResponse {
+public class CreateJobResponse {
     Long id;
     String title;
     String description;
@@ -18,8 +19,8 @@ public class JobForRecruiterResponse {
     LocalDateTime deadline;
     LocalDateTime createdAt;
     LocalDateTime updatedAt;
-
     Set<SkillOfJobResponse> skills;
+    List<StageOfJobResponse> stages;
 
     @Getter
     @Builder
@@ -27,5 +28,13 @@ public class JobForRecruiterResponse {
         Long id;
         String skillName;
         boolean required;
+    }
+
+    @Getter
+    @Builder
+    public static class StageOfJobResponse {
+        Long id;
+        String stageName;
+        String stageOrder;
     }
 }

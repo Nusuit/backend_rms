@@ -305,7 +305,9 @@ public class AuthServiceImp implements AuthService {
         context.setVariable("to", to);
         String content = templateEngine.process("email_verification", context);
 
-        MimeMessage message = emailService.createMimeMessage(FROM, to, VERIFIED_SUBJECT, content);
-        emailService.sendEmail(message);
+
+        emailService.sendEmail(FROM, to, VERIFIED_SUBJECT, content);
+//        MimeMessage message = emailService.createMimeMessage(FROM, to, VERIFIED_SUBJECT, content);
+//        emailService.sendEmail(message);
     }
 }

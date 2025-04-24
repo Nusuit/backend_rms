@@ -14,4 +14,5 @@ public class ApplyJobResponse {
     ApplicationStatus status;
     String recruiterNote;
     Long jobId;
+    String cvUrl;
 }

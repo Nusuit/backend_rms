@@ -7,4 +7,6 @@ import java.util.Optional;
 
 public interface SkillOfJobRepository extends JpaRepository<SkillOfJob, Long> {
     Optional<SkillOfJob> findByJobIdAndSkillId(Long jobId, Long skillId);
+
+    void deleteByJobId(Long jobId);
 }

@@ -15,6 +15,5 @@ public class RmsApplication {
     public static void main(String[] args) {
         ApplicationContext ctx = SpringApplication.run(RmsApplication.class, args);
 
-
     }
 }

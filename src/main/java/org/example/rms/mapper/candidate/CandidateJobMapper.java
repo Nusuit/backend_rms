@@ -1,17 +1,17 @@
-package org.example.rms.mapper.recruiter;
+package org.example.rms.mapper.candidate;
 
-import org.example.rms.dto.recruiter.JobForRecruiterResponse;
+import org.example.rms.dto.candidate.CandidateJobResponse;
 import org.example.rms.entity.Job;
 import org.example.rms.entity.SkillOfJob;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
 @Mapper(componentModel = "spring")
-public interface JobForRecruiterMapper {
+public interface CandidateJobMapper {
     @Mapping(source = "skill.skillName", target = "skillName")
     @Mapping(source = "skill.id", target = "id")
-    JobForRecruiterResponse.SkillOfJobResponse toSkillOfJobResponse(SkillOfJob skill);
+    CandidateJobResponse.SkillOfJobResponse toSkillOfJobResponse(SkillOfJob skill);
 
-    JobForRecruiterResponse toGetJobResponse(Job job);
 
+    CandidateJobResponse toCandidateJobResponse(Job job);
 }

@@ -5,14 +5,18 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
+import org.example.rms.entity.User;
 import org.example.rms.repo.UnverifiedUserRepository;
 import org.example.rms.repo.UserRepository;
+import org.example.rms.utils.JwtUtils;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.security.web.authentication.SimpleUrlAuthenticationSuccessHandler;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
+import java.util.Optional;
 
 @Component
 @RequiredArgsConstructor
@@ -23,8 +27,29 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response,
                                         Authentication authentication) throws IOException, ServletException {
-        response.getWriter().write(request.getSession().getAttribute("Key").toString());
+//        response.getWriter().write(request.getSession().getAttribute("Key").toString());
+//
+//        request.getSession().removeAttribute("Key");
 
-        request.getSession().removeAttribute("Key");
+//        OAuth2User oauth2User = (OAuth2User) authentication.getPrincipal();
+//        String email = (String) oauth2User.getAttribute("email");
+//
+//        User user = userRepository.findByEmail(email).orElseGet(() -> {
+//            User newUser = new User();
+//            newUser.setEmail(email);
+//        })
+
+
+//        JwtUtils.generateAccessToken()
+
+        if (authentication instanceof OAuth2AuthenticationToken oauth2Token) {
+            String provider = oauth2Token.getAuthorizedClientRegistrationId();
+
+            OAuth2User oauth2User = oauth2Token.getPrincipal();
+            System.out.println(provider);
+            System.out.println(oauth2User.getName());
+
+        }
+
     }
 }

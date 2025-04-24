@@ -27,4 +27,8 @@ public class ApiResponse<P> {
                 .payload(payload)
                 .build();
     }
+
+    public static <P> ApiResponse<P> successBuild() {
+        return ApiResponse.successBuild(null);
+    }
 }

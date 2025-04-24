@@ -4,6 +4,7 @@ import lombok.Builder;
 import lombok.Getter;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Set;
 
 @Getter
@@ -15,13 +16,19 @@ public class CreateJobRequest {
     String benefit;
     String salary;
     LocalDateTime deadline;
-
     Set<SkillOfJobRequest> skills;
+    List<StageOfJobRequest> stages;
 
     @Getter
     @Builder
     public static class SkillOfJobRequest {
         Long id;
         boolean required;
+    }
+
+    @Getter
+    @Builder
+    public static class StageOfJobRequest {
+        Long id;
     }
 }

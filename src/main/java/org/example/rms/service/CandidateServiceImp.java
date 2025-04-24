@@ -27,15 +27,15 @@ public class CandidateServiceImp {
     private final ApplicationRepository applicationRepository;
 
     private final ApplyJobMapper applyJobMapper;
-    private final JobForCandidateMapper jobForCandidateMapper;
+    private final CandidateJobMapper candidateJobMapper;
     private final CandidateProfileMapper candidateProfileMapper;
     private final ModifyApplicationMapper modifyApplicationMapper;
     private final UpdateCandidateProfileMapper updateCandidateProfileMapper;
-    private final ApplicationForCandidateMapper applicationForCandidateMapper;
+    private final CandidateApplicationMapper candidateApplicationMapper;
 
     private final CloudService cloudService;
 
-    public Page<JobForCandidateResponse> getJobs(Long candidateId, Pageable pageable) {
+    public Page<CandidateJobResponse> getJobs(Long candidateId, Pageable pageable) {
         List<Application> applications = applicationRepository.findByCandidateId(candidateId);
 
         Set<Long> appliedJobIds = new HashSet<>();
@@ -46,7 +46,7 @@ public class CandidateServiceImp {
         Page<Job> jobPage = jobRepository.findByStatus(JobStatus.OPEN, pageable);
 
         return jobPage.map(job -> {
-            JobForCandidateResponse jobResponse = jobForCandidateMapper.toGetJobResponse(job);
+            CandidateJobResponse jobResponse = candidateJobMapper.toCandidateJobResponse(job);
             boolean applicable = !appliedJobIds.contains(job.getId());
             return jobResponse.toBuilder().applicable(applicable).build();
         });
@@ -67,17 +67,17 @@ public class CandidateServiceImp {
         return applyJobMapper.toApplyJobResponse(application);
     }
 
-    public ApplicationForCandidateResponse getApplication(Long candidateId, Long applicationId) {
+    public CandidateApplicationResponse getApplication(Long candidateId, Long applicationId) {
         Application application = applicationRepository.findByIdAndCandidateId(applicationId, candidateId).orElseThrow(
                 () -> new ResourceNotFoundException("Application not found or not owned")
         );
 
-        return applicationForCandidateMapper.toApplicationForCandidateResponse(application);
+        return candidateApplicationMapper.toCandidateApplicationResponse(application);
     }
 
-    public Page<ApplicationForCandidateResponse> getApplications(Long candidateId, Pageable pageable) {
+    public Page<CandidateApplicationResponse> getApplications(Long candidateId, Pageable pageable) {
         return applicationRepository.findByCandidateId(candidateId, pageable)
-                .map(applicationForCandidateMapper::toApplicationForCandidateResponse);
+                .map(candidateApplicationMapper::toCandidateApplicationResponse);
     }
 
     public void modifyApplication(Long candidateId, Long applicationId, ModifyApplicationRequest request) {

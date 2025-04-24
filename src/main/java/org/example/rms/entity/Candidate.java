@@ -42,6 +42,6 @@ public class Candidate {
     @OneToMany(mappedBy = "candidate", cascade = {CascadeType.PERSIST, CascadeType.MERGE})
     List<Application> applications;
 
-    @OneToMany(mappedBy = "candidate", cascade = {CascadeType.PERSIST, CascadeType.MERGE})
-    List<Interview> interviews;
+//    @OneToMany(mappedBy = "candidate", cascade = {CascadeType.PERSIST, CascadeType.MERGE})
+//    List<Interview> interviews;
 }

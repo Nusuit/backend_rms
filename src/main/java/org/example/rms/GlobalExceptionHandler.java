@@ -38,7 +38,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ApiResponse<?>> handleException(Exception e) {
-        System.out.println(e);
+        System.out.println(e.getMessage());
         return null;
     }
 
@@ -125,8 +125,8 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(e.getHttpStatus()).body(a);
     }
 
-    @ExceptionHandler(OperationException.class)
-    public ResponseEntity<ApiResponse<?>> handleException(OperationException e) {
+    @ExceptionHandler(InterviewRecordAlreadyPassedException.class)
+    public ResponseEntity<ApiResponse<?>> handleException(InterviewRecordAlreadyPassedException e) {
         ApiResponse a = ApiResponse
                 .builder()
                 .success(false)

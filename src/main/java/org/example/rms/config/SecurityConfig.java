@@ -8,6 +8,7 @@ import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.ProviderManager;
+import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -16,7 +17,12 @@ import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.access.AccessDeniedHandler;
 import org.springframework.security.web.context.SecurityContextHolderFilter;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.web.servlet.HandlerExceptionResolver;
+
+import java.util.List;
 
 @Configuration
 public class SecurityConfig {
@@ -39,16 +45,16 @@ public class SecurityConfig {
         http
                 .csrf(AbstractHttpConfigurer::disable)
                 .httpBasic(AbstractHttpConfigurer::disable)
+                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
 //                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(authorizeRequests ->
                         authorizeRequests
-                                .requestMatchers(HttpMethod.POST, "/api/auth/**").permitAll()
                                 .requestMatchers("/swagger-ui/index.html", "/swagger-ui/**", "/v3/api-docs/**", "/webjars/**").permitAll()
+                                .requestMatchers(HttpMethod.POST, "/api/auth/**").permitAll()
                                 .requestMatchers("/api/candidate/**").hasRole("CANDIDATE")
                                 .requestMatchers("/api/recruiter/**").hasRole("RECRUITER")
-                                .requestMatchers("/test/**").permitAll()
+                                .requestMatchers("/test/**", "//login/oauth2/code/**").permitAll()
                                 .anyRequest().authenticated()
-
 
                 )
                 .addFilterAfter(new JwtAuthenticationFilter(authenticationManager()), SecurityContextHolderFilter.class)
@@ -63,7 +69,7 @@ public class SecurityConfig {
                                     .baseUri("/oauth2/authorize")
                             )
                             .redirectionEndpoint(redirection -> redirection
-                                    .baseUri("/api/auth/google/login")
+                                    .baseUri("/api/auth/**")
                             )
                             .successHandler(oAuth2AuthenticationSuccessHandler);
                 })
@@ -90,6 +96,20 @@ public class SecurityConfig {
     @Bean
     public AccessDeniedHandler RmsAccessDeniedHandler() {
         return new RmsAccessDeniedHandler(handlerExceptionResolver);
+    }
+
+    @Bean
+    public CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration config = new CorsConfiguration();
+//        config.setAllowedOrigins(List.of("http://localhost:3000"));
+        config.setAllowedOrigins(List.of("*"));
+        config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        config.addAllowedHeader("*");
+//        config.setAllowCredentials(true);
+
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", config);
+        return source;
     }
 
 }

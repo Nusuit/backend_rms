@@ -13,7 +13,6 @@ import org.springframework.stereotype.Service;
 public class EmailServiceImp implements EmailService {
     private final JavaMailSender mailSender;
 
-    @Override
     public void sendEmail(MimeMessage message) {
         mailSender.send(message);
     }
@@ -30,5 +29,15 @@ public class EmailServiceImp implements EmailService {
         return message;
     }
 
+    public void sendEmail(String from, String to, String subject, String text) throws MessagingException {
+        MimeMessage message = mailSender.createMimeMessage();
 
+        MimeMessageHelper helper = new MimeMessageHelper(message, true, "utf-8");
+        helper.setFrom(from);
+        helper.setTo(to);
+        helper.setSubject(subject);
+        helper.setText(text, true);
+
+        mailSender.send(message);
+    }
 }

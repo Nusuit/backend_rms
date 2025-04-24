@@ -1,4 +1,4 @@
-package org.example.rms.dto.recruiter;
+package org.example.rms.dto.candidate;
 
 import lombok.Builder;
 import lombok.Getter;
@@ -6,9 +6,11 @@ import org.example.rms.entity.ApplicationStatus;
 
 @Getter
 @Builder
-public class ApplicationForRecruiterResponse {
+public class CandidateApplicationResponse {
     Long id;
     String coverLetter;
     ApplicationStatus status;
     String recruiterNote;
+    Long jobId;
+    String cvUrl;
 }

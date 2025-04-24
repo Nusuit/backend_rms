@@ -46,11 +46,16 @@ public class Job {
     @JoinColumn(name = "recruiter_id")
     Recruiter recruiter;
 
-    @OneToMany(mappedBy = "job")
+    @OneToMany(mappedBy = "job", cascade = {CascadeType.REMOVE})
     List<Application> applications;
 
-    @OneToMany(mappedBy = "job", cascade = {CascadeType.PERSIST, CascadeType.MERGE}, fetch = FetchType.LAZY, orphanRemoval = true)
+    @OneToMany(mappedBy = "job", fetch = FetchType.LAZY, cascade = {CascadeType.REMOVE})
+    @OrderBy
     Set<SkillOfJob> skills;
+
+    @OneToMany(mappedBy = "job", cascade = {CascadeType.REMOVE})
+    @OrderBy
+    Set<StageOfJob> stages;
 
     @PostLoad
     void updateStatus() {

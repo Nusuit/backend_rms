@@ -24,6 +24,8 @@ public class InterviewSchedule {
 
     String type;
 
+    LocalDateTime time;
+
     @CreationTimestamp
     LocalDateTime createdAt;
 
@@ -31,5 +33,13 @@ public class InterviewSchedule {
     LocalDateTime updatedAt;
 
     @OneToMany(mappedBy = "schedule")
-    List<Interview> interviews;
+    List<InterviewRecord> interviewRecords;
+
+    @ManyToOne
+    @JoinColumn(name = "stage_id")
+    InterviewStage stage;
+
+    @ManyToOne
+    @JoinColumn(name = "job_id")
+    Job job;
 }
