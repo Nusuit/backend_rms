@@ -19,21 +19,19 @@ public class User {
     @Column(name = "user_id")
     private Long id;
 
-    @Column(unique = true, nullable = false)
+    @Column(unique = true)
     private String email;
 
     private String password;
 
     private String refreshToken;
 
-    @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "role_id")
     Role role;
 
     @Enumerated(EnumType.STRING)
     private UserStatus status;
-
-    private String oauth2Provider;
 
     @CreationTimestamp
     private LocalDateTime createdAt;

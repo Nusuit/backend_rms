@@ -6,7 +6,9 @@ import io.jsonwebtoken.JwtException;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.example.rms.dto.authentication.*;
@@ -26,6 +28,7 @@ import org.thymeleaf.spring6.SpringTemplateEngine;
 
 
 import java.time.Duration;
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.Optional;
 
@@ -37,6 +40,7 @@ public class AuthServiceImp implements AuthService {
     private final CandidateRepository candidateRepository;
     private final RecruiterRepository recruiterRepository;
     private final UnverifiedUserRepository unverifiedUserRepository;
+    private final OAuth2Repository oAuth2Repository;
     private final PasswordEncoder passwordEncoder;
     private final EmailService emailService;
     private final TransactionTemplate transactionTemplate;
@@ -244,6 +248,28 @@ public class AuthServiceImp implements AuthService {
         unverifiedUserRepository.delete(unverifiedUser);
 
         return new VerifyResponse();
+    }
+
+    @Override
+    public LoginResponse oauth2GetToken(String code, HttpServletResponse httpResponse) {
+        OAuth2 oAuth2 = oAuth2Repository.findByCode(code).orElseThrow(
+                () -> new ResourceNotFoundException("Code not found")
+        );
+
+        if (Duration.between(oAuth2.getCodeCreatedAt(), LocalDateTime.now()).toSeconds() > 30) {
+            throw new OAuth2CodeExpireException("Code expired");
+        }
+
+        User user = oAuth2.getUser();
+
+        String accessToken = JwtUtils.generateAccessToken(user);
+        String refreshToken = JwtUtils.generateRefreshToken(user);
+
+        createAndSetRefreshTokenCookie(httpResponse, refreshToken);
+
+        updateUserRefreshToken(user, refreshToken);
+
+        return new LoginResponse(accessToken, refreshToken, "Bearer");
     }
 
     private boolean isRecruiterUser(User user) {

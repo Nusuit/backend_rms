@@ -1,6 +1,7 @@
 package org.example.rms.controller;
 
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 import org.example.rms.dto.authentication.*;
 import org.example.rms.dto.ApiResponse;
@@ -92,5 +93,12 @@ public class AuthController {
                     .success(true)
                     .message("Resend otp successful")
                 .build();
+    }
+
+    @GetMapping("/oauth2/token")
+    public ApiResponse<?> oauth2GetToken(@RequestParam String code, HttpServletResponse httpResponse) {
+        LoginResponse response = authService.oauth2GetToken(code, httpResponse);
+
+        return ApiResponse.successBuild(response);
     }
 }

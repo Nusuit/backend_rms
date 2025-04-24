@@ -50,10 +50,10 @@ public class SecurityConfig {
                 .authorizeHttpRequests(authorizeRequests ->
                         authorizeRequests
                                 .requestMatchers("/swagger-ui/index.html", "/swagger-ui/**", "/v3/api-docs/**", "/webjars/**").permitAll()
-                                .requestMatchers(HttpMethod.POST, "/api/auth/**").permitAll()
+                                .requestMatchers("/api/auth/**").permitAll()
                                 .requestMatchers("/api/candidate/**").hasRole("CANDIDATE")
                                 .requestMatchers("/api/recruiter/**").hasRole("RECRUITER")
-                                .requestMatchers("/test/**", "//login/oauth2/code/**").permitAll()
+                                .requestMatchers("/test/**").permitAll()
                                 .anyRequest().authenticated()
 
                 )
@@ -66,10 +66,10 @@ public class SecurityConfig {
                 .oauth2Login(oauth2 -> {
                     oauth2
                             .authorizationEndpoint(authorization -> authorization
-                                    .baseUri("/oauth2/authorize")
+                                    .baseUri("/api/oauth2/authorize")
                             )
                             .redirectionEndpoint(redirection -> redirection
-                                    .baseUri("/api/auth/**")
+                                    .baseUri("/api/oauth2/login/**")
                             )
                             .successHandler(oAuth2AuthenticationSuccessHandler);
                 })
