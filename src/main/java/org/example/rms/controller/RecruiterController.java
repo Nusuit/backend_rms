@@ -112,6 +112,7 @@ public class RecruiterController {
     }
 
     @PostMapping("/jobs/{jobId}/stages/{stageId}/schedules")
+    @ResponseStatus(HttpStatus.CREATED)
     public ApiResponse<?> createInterviewSchedule(@AuthenticationPrincipal UserPrincipal userPrincipal,
                                                   @PathVariable Long jobId, @PathVariable Long stageId,
                                                   @RequestBody CreateInterviewScheduleRequest request) {
