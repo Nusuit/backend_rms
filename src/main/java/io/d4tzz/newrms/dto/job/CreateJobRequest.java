@@ -22,6 +22,7 @@ public class CreateJobRequest {
     private String location;
 
     private List<SkillRequirement> skills;
+    private Long processId;
     private List<StageRequirement> stages;
 
     @Getter

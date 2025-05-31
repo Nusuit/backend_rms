@@ -34,6 +34,10 @@ public class Interview {
     @JoinColumn(name = "job_stage_id")
     private JobStage jobStage;
 
+    @ManyToOne
+    @JoinColumn(name = "stage_id")
+    private Stage stage;
+
     @CreationTimestamp
     private LocalDateTime createdDate;
 

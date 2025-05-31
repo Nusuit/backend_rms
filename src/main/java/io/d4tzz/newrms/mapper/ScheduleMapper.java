@@ -14,6 +14,6 @@ public interface ScheduleMapper {
     void updatePartial(UpdateScheduleRequest updateScheduleRequest, @MappingTarget Schedule schedule);
 
     @Mapping(target = "jobId", source = "job.id")
-    @Mapping(target = "jobStageId", source = "jobStage.id")
+    @Mapping(target = "jobStageId", source = "stage.id")
     ScheduleDto toScheduleDto(Schedule schedule);
 }

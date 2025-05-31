@@ -36,15 +36,15 @@ public class RecruiterJobController {
         return ApiResponse.success(jobDtoPage);
     }
 
-//    @GetMapping("/industries")
-//    public ApiResponse<?> getIndustries() {
-//        return ApiResponse.success(recruiterJobService.getIndustries());
-//    }
+    @GetMapping("/skills")
+    public ApiResponse<?> getIndustries(@RequestParam(required = false) String name, Pageable pageable) {
+        return ApiResponse.success(recruiterJobService.getSkills(name, pageable));
+    }
 
-//    @GetMapping("/industries/{industryId}/skills-stages")
-//    public ApiResponse<?> getSkillsAndStagesByIndustry(@PathVariable Long industryId) {
-//        return ApiResponse.success(recruiterJobService.getSkillsAndStagesByIndustry(industryId));
-//    }
+    @GetMapping("/processes")
+    public ApiResponse<?> getSkillsAndStagesByIndustry(@RequestParam(required = false) String name, Pageable pageable) {
+        return ApiResponse.success(recruiterJobService.getRecruitmentProcess(name, pageable));
+    }
 
     @PutMapping("/jobs/{jobId}")
     public ApiResponse<?> updateJob(@Valid @RequestBody UpdateJobRequest request, @PathVariable Long jobId) {

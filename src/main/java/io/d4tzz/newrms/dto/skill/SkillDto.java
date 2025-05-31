@@ -6,7 +6,7 @@ import lombok.Getter;
 
 @Getter
 @Builder
-public class SkillByIndustryDto {
+public class SkillDto {
     @JsonProperty("skillId")
     private Long id;
     private String name;

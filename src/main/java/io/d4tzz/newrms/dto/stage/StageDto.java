@@ -6,10 +6,9 @@ import lombok.Getter;
 
 @Getter
 @Builder
-public class StageByIndustryDto {
+public class StageDto {
     @JsonProperty("stageId")
     private Long id;
     private String name;
     private Integer order;
-    private boolean skipped;
 }

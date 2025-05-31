@@ -47,11 +47,11 @@ public class CandidateApplicationServiceImpl extends AbstractService implements 
     private ApplicationDto applicationToDto(Application application) {
         Job job = application.getJob();
 
-        List<ApplicationStageDto> applicationStageDtos = job.getStages()
+        List<ApplicationStageDto> applicationStageDtos = job.getProcess().getStages()
                 .stream()
-                .map(jobStage -> {
+                .map(stage -> {
 
-                    Interview interview = interviewRepository.findByApplicationIdAndJobStageId(application.getId(), jobStage.getId())
+                    Interview interview = interviewRepository.findByApplicationIdAndStageId(application.getId(), stage.getId())
                             .orElse(null);
                     ApplicationInterviewDto applicationInterviewDto = null;
                     if (interview != null) {
@@ -72,8 +72,8 @@ public class CandidateApplicationServiceImpl extends AbstractService implements 
                     }
 
                     return ApplicationStageDto.builder()
-                            .stageId(jobStage.getId())
-                            .stageName(jobStage.getStage().getName())
+                            .stageId(stage.getId())
+                            .stageName(stage.getName())
                             .interview(applicationInterviewDto)
                             .schedule(applicationScheduleDto)
                             .build();

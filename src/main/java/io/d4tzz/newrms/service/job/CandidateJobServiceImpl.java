@@ -70,11 +70,12 @@ public class CandidateJobServiceImpl extends AbstractService implements Candidat
             throw new InvalidRequestException("Candidate has already applied to this job");
         }
 
-        JobStage firstJobStage = job.getStages().stream().findFirst().orElseThrow();
-        if (firstJobStage.getOrder() != 1) {
-            throw new RuntimeException("Logic error: job stage order not equal to 1");
-        }
+//        JobStage firstJobStage = job.getStages().stream().findFirst().orElseThrow();
+//        if (firstJobStage.getOrder() != 1) {
+//            throw new RuntimeException("Logic error: job stage order not equal to 1");
+//        }
 
+        Stage firstStage = job.getProcess().getStages().stream().filter(stage -> stage.getOrder() == 1).findFirst().orElseThrow();
 
         Application application = new Application();
         application.setJob(job);
@@ -87,7 +88,8 @@ public class CandidateJobServiceImpl extends AbstractService implements Candidat
         Interview interview = new Interview();
         interview.setApplication(application);
         interview.setStatus(InterviewStatus.PROGRESS);
-        interview.setJobStage(firstJobStage);
+//        interview.setJobStage(firstJobStage);
+        interview.setStage(firstStage);
 
         Schedule scheduleOfFirstJobStage = scheduleRepository.findByJobIdAndJobStageOrder(jobId, 1)
                 .stream().findFirst().orElseThrow();
@@ -95,11 +97,11 @@ public class CandidateJobServiceImpl extends AbstractService implements Candidat
 
         interviewRepository.save(interview);
 
-        List<ApplicationStageDto> applicationStageDtos = job.getStages()
+        List<ApplicationStageDto> applicationStageDtos = job.getProcess().getStages()
                 .stream()
-                .map(jobStage -> {
+                .map(stage -> {
 
-                    Interview existingInterview = interviewRepository.findByApplicationIdAndJobStageId(application.getId(), jobStage.getId())
+                    Interview existingInterview = interviewRepository.findByApplicationIdAndStageId(application.getId(), stage.getId())
                             .orElse(null);
                     ApplicationInterviewDto applicationInterviewDto = null;
                     if (existingInterview != null) {
@@ -120,8 +122,8 @@ public class CandidateJobServiceImpl extends AbstractService implements Candidat
                     }
 
                     return ApplicationStageDto.builder()
-                            .stageId(jobStage.getId())
-                            .stageName(jobStage.getStage().getName())
+                            .stageId(stage.getId())
+                            .stageName(stage.getName())
                             .interview(applicationInterviewDto)
                             .schedule(applicationScheduleDto)
                             .build();

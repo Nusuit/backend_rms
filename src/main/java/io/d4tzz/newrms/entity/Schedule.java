@@ -40,4 +40,8 @@ public class Schedule {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "job_stage_id")
     private JobStage jobStage;
+
+    @ManyToOne
+    @JoinColumn(name = "stage_id")
+    private Stage stage;
 }

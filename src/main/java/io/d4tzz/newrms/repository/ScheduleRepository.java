@@ -12,6 +12,10 @@ import java.util.Optional;
 public interface ScheduleRepository extends JpaRepository<Schedule, Long> {
     Page<Schedule> findByJobIdAndJobStageId(Long jobId, Long jobStageId, Pageable pageable);
 
+    Page<Schedule> findByJobIdAndStageId(Long jobId, Long stageId, Pageable pageable);
+
+    Optional<Schedule> findByJobIdAndStageIdAndId(Long jobId, Long stageId, Long scheduleId);
+
     Optional<Schedule> findByJobIdAndJobStageIdAndId(Long jobId, Long jobStageId, Long scheduleId);
 
     List<Schedule> findByJobIdAndJobStageOrder(Long jobId, Integer order);

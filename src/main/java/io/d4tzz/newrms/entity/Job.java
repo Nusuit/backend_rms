@@ -43,10 +43,6 @@ public class Job {
     @Enumerated(EnumType.STRING)
     JobStatus status;
 
-//    @ManyToOne(fetch = FetchType.LAZY)
-//    @JoinColumn(name = "industry_id")
-//    private Industry industry;
-
     @CreationTimestamp
     private LocalDateTime createdAt;
 
@@ -62,8 +58,12 @@ public class Job {
     private Set<JobStage> stages;
 
     @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "recruitment_process_id")
+    private RecruitmentProcess process;
+
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "recruiter_id")
-    Recruiter recruiter;
+    private Recruiter recruiter;
 
     @PostLoad
     private void onLoad() {

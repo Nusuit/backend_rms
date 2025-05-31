@@ -7,8 +7,8 @@ import org.mapstruct.Mapping;
 
 @Mapper(componentModel = "spring")
 public interface StageMapper {
-    @Mapping(target = "jobStageId", source = "id")
-    @Mapping(target = "name", source = "stage.name")
-    @Mapping(target = "order", source = "order")
-    JobStageDto toStageDto(JobStage stage);
+//    @Mapping(target = "jobStageId", source = "id")
+//    @Mapping(target = "name", source = "stage.name")
+//    @Mapping(target = "order", source = "order")
+//    JobStageDto toStageDto(JobStage stage);
 }

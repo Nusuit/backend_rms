@@ -1,6 +1,9 @@
 package io.d4tzz.newrms.service.job;
 
 import io.d4tzz.newrms.dto.job.*;
+import io.d4tzz.newrms.dto.process.RecruitmentProcessDto;
+import io.d4tzz.newrms.dto.skill.SkillDto;
+import io.d4tzz.newrms.dto.stage.StageDto;
 import io.d4tzz.newrms.entity.*;
 import io.d4tzz.newrms.entity.enums.ApplicationStatus;
 import io.d4tzz.newrms.entity.enums.JobStatus;
@@ -9,16 +12,17 @@ import io.d4tzz.newrms.mapper.JobMapper;
 import io.d4tzz.newrms.repository.*;
 import io.d4tzz.newrms.service.AbstractService;
 import io.d4tzz.newrms.spec.JobSpecification;
-import lombok.RequiredArgsConstructor;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import lombok.RequiredArgsConstructor;
+
 import java.time.LocalDate;
 import java.util.HashSet;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -31,11 +35,10 @@ public class RecruiterJobServiceImpl extends AbstractService implements Recruite
     private final JobSkillRepository jobSkillRepository;
     private final ApplicationRepository applicationRepository;
     private final RecruiterRepository recruiterRepository;
-    private final IndustryRepository industryRepository;
     private final JobStageRepository jobStageRepository;
     private final SkillRepository skillRepository;
-    private final StageRepository stageRepository;
     private final ScheduleRepository scheduleRepository;
+    private final RecruitmentProcessRepository recruitmentProcessRepository;
 
 
     @Override
@@ -54,44 +57,43 @@ public class RecruiterJobServiceImpl extends AbstractService implements Recruite
         });
     }
 
-//    public List<IndustryDto> getIndustries() {
-//        List<Industry> industries = industryRepository.findAll();
-//        return industries.stream()
-//                .map(industry -> IndustryDto.builder()
-//                        .id(industry.getId())
-//                        .name(industry.getName())
-//                        .build()
-//                )
-//                .toList();
-//    }
+    public Page<SkillDto> getSkills(String skillName, Pageable pageable) {
+        Page<Skill> skills;
+        if (skillName == null || skillName.isBlank()) {
+            skills = skillRepository.findAll(pageable);
+        } else {
+            skills = skillRepository.findAllByNameContainingIgnoreCase(skillName, pageable);
+        }
+        return skills.map(skill -> SkillDto.builder().id(skill.getId()).name(skill.getName()).build());
+    }
 
-//    public SkillsAndStagesByIndustryDto getSkillsAndStagesByIndustry(Long industryId) {
-//        industryRepository.findById(industryId).orElseThrow(
-//                () -> new ResourceNotFoundException("Industry not found")
-//        );
-//
-//        List<Skill> skills = skillRepository.findByIndustryId(industryId);
-//        List<SkillByIndustryDto> skillDtos = skills.stream()
-//                .map(skill -> SkillByIndustryDto.builder()
-//                        .id(skill.getId())
-//                        .name(skill.getName())
-//                        .build()
-//                )
-//                .toList();
-//
-//        List<Stage> stages = stageRepository.findByIndustryId(industryId);
-//        List<StageByIndustryDto> stageDtos = stages.stream()
-//                .map(stage -> StageByIndustryDto.builder()
-//                        .id(stage.getId())
-//                        .name(stage.getName())
-//                        .order(stage.getOrder())
-//                        .skipped(false)
-//                        .build()
-//                )
-//                .toList();
-//
-//        return SkillsAndStagesByIndustryDto.builder().skills(skillDtos).stages(stageDtos).build();
-//    }
+    public Page<RecruitmentProcessDto> getRecruitmentProcess(String processName, Pageable pageable) {
+        Page<RecruitmentProcess> recruitmentProcesses;
+        if (processName == null || processName.isBlank()) {
+            recruitmentProcesses = recruitmentProcessRepository.findAll(pageable);
+        } else {
+            recruitmentProcesses = recruitmentProcessRepository.findAllByNameContainingIgnoreCase(processName, pageable);
+        }
+
+        return recruitmentProcesses.map(process -> {
+
+            List<StageDto> stageDtos = process.getStages()
+                    .stream()
+                    .map(stage ->
+                            StageDto.builder()
+                            .id(stage.getId())
+                            .name(stage.getName())
+                            .order(stage.getOrder())
+                            .build()
+                    ).toList();
+
+            return RecruitmentProcessDto.builder()
+                    .id(process.getId())
+                    .name(process.getName())
+                    .stages(stageDtos)
+                    .build();
+        });
+    }
 
     @Override
     @Transactional
@@ -99,23 +101,26 @@ public class RecruiterJobServiceImpl extends AbstractService implements Recruite
         Long recruiterId = getUserIdentity();
 
         /*
-         * Validate the request
+         * Validate salary
          */
-        CreateJobRequest.StageRequirement firstStageRequirement = request.getStages().stream().findFirst().orElseThrow(
-                () -> new InvalidRequestException("Creating job must have at least one stage")
-        );
-
-        Stage firstStage = stageRepository.findById(firstStageRequirement.getStageId()).orElseThrow(
-                () -> new ResourceNotFoundException("Stage not found")
-        );
-
         if (request.getMinSalary() > request.getMaxSalary()) {
             throw new InvalidRequestException("Starting salary cannot be greater than ending salary");
         }
 
-        /* Create new job */
+        /*
+         * Validate processId
+         */
+        Long processId = request.getProcessId();
+        RecruitmentProcess process = recruitmentProcessRepository.findById(processId).orElseThrow(
+                () -> new ResourceNotFoundException("Process not found")
+        );
+
+        /*
+         * Create new job
+         */
         Job job = jobMapper.toJob(request);
-        job.setRecruiter( recruiterRepository.getReferenceById(recruiterId) );
+        job.setRecruiter( recruiterRepository.getReferenceById(recruiterId));
+        job.setProcess(process);
         job = jobRepository.save(job);
 
         /*
@@ -136,19 +141,14 @@ public class RecruiterJobServiceImpl extends AbstractService implements Recruite
         }
         jobSkillRepository.saveAll(jobSkills);
 
-        /*
-         * Maps StageRequirement to the JobStage of the created job.
-         */
-        Set<JobStage> jobStages = new LinkedHashSet<>(request.getStages().size());
-        int order = 1;
-        for (CreateJobRequest.StageRequirement stageRequirement : request.getStages()) {
-            Long stageId = stageRequirement.getStageId();
 
+        Set<JobStage> jobStages = new HashSet<>(process.getStages().size());
+        Set<Stage> stages = process.getStages();
+        for (Stage stage : stages) {
             JobStage jobStage = new JobStage();
             jobStage.setJob(job);
-            Stage stage = stageRepository.findById(stageId).orElseThrow(() -> new ResourceNotFoundException("Stage not found"));
             jobStage.setStage(stage);
-            jobStage.setOrder(order++);
+            jobStage.setOrder(stage.getOrder());
 
             jobStages.add(jobStage);
         }
@@ -160,12 +160,13 @@ public class RecruiterJobServiceImpl extends AbstractService implements Recruite
         /*
          * Create the schedule for first stage (default stage)
          */
+        Stage firstStage = stages.stream().filter(stage -> stage.getOrder() == 1).findFirst().orElseThrow();
         Schedule schedule = new Schedule();
         schedule.setJob(job);
         schedule.setJobStage(jobStageRepository.findByJobIdAndOrder(job.getId(), 1).orElseThrow());
-        schedule.setName("CV Screening");
+        schedule.setStage(firstStage);
+        schedule.setName(firstStage.getName());
         scheduleRepository.save(schedule);
-
 
         return jobMapper.toRecruiterJobDto(job, 0L);
     }
@@ -246,14 +247,19 @@ public class RecruiterJobServiceImpl extends AbstractService implements Recruite
         String title = filter.getTitle();
         String industry = filter.getIndustry();
 
-        /* Dam bao deadlineFrom va deadlineTo dong thoi khac null*/
+        /*
+         * Ensure both deadlineFrom and deadlineTo are not null
+         */
         LocalDate deadlineFrom = filter.getDeadlineFrom();
         LocalDate deadlineTo = filter.getDeadlineTo();
         if ((deadlineFrom == null) != (deadlineTo == null)) {
             throw new InvalidRequestException("Both start and end deadlines are required");
         }
 
-        /* Dam bao minSalary va maxSalary dong thoi khac null*/
+
+        /*
+         * Ensure both minSalary and maxSalary are not null
+         */
         Long minSalary = filter.getMinSalary();
         Long maxSalary = filter.getMaxSalary();
         if ((minSalary == null) != (maxSalary == null)) {

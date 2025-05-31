@@ -19,7 +19,7 @@ public class Stage {
     @Column(name = "stage_order")
     private int order;
 
-//    @ManyToOne
-//    @JoinColumn(name = "industry_id", nullable = false)
-//    private Industry industry;
+    @ManyToOne
+    @JoinColumn(name = "recruitment_process_id")
+    private RecruitmentProcess process;
 }

@@ -8,9 +8,9 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import java.util.Optional;
 
 public interface InterviewRepository extends JpaRepository<Interview, Long> {
-    Page<Interview> findByJobStageIdAndApplicationJobIdAndScheduleIsNull(Long stageId, Long applicationJobId, Pageable pageable);
+    Page<Interview> findByStageIdAndApplicationJobIdAndScheduleIsNull(Long stageId, Long applicationJobId, Pageable pageable);
 
     Page<Interview> findByScheduleId(Long scheduleId, Pageable pageable);
 
-    Optional<Interview> findByApplicationIdAndJobStageId(Long applicationId, Long jobStageId);
+    Optional<Interview> findByApplicationIdAndStageId(Long applicationId, Long stageId);
 }

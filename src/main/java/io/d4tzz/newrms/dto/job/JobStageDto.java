@@ -6,7 +6,7 @@ import lombok.Getter;
 @Getter
 @Builder
 public class JobStageDto {
-    private Long jobStageId;
+    private Long stageId;
     private String name;
     private int order;
 }

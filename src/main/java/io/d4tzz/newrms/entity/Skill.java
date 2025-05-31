@@ -17,7 +17,7 @@ public class Skill {
     @Column(name = "name")
     private String name;
 
-    @ManyToOne
-    @JoinColumn(name = "industry_id", nullable = false)
-    private Industry industry;
+//    @ManyToOne
+//    @JoinColumn(name = "industry_id", nullable = false)
+//    private Industry industry;
 }

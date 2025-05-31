@@ -32,15 +32,19 @@ public class RecruiterScheduleServiceImpl extends AbstractService {
     private final InterviewRepository interviewRepository;
     private final InterviewMapper interviewMapper;
     private final ApplicationRepository applicationRepository;
+    private final StageRepository stageRepository;
 
 
     @Transactional
     public ScheduleDto createSchedule(Long jobId, Long stageId, CreateScheduleRequest request) {
-        JobStage jobStage = jobStageRepository.findByJobIdAndId(jobId, stageId).orElseThrow(
-                () -> new ResourceNotFoundException("job and stage not match")
+//        JobStage jobStage = jobStageRepository.findByJobIdAndId(jobId, stageId).orElseThrow(
+//                () -> new ResourceNotFoundException("job and stage not match")
+//        );
+
+        Job job = jobRepository.findById(jobId).orElseThrow(
+                () -> new ResourceNotFoundException("job not found")
         );
 
-        Job job = jobRepository.getReferenceById(jobId);
         if (job.getStatus() != JobStatus.OPEN) {
             throw new InvalidRequestException("Job is not open for scheduling");
         }
@@ -49,13 +53,22 @@ public class RecruiterScheduleServiceImpl extends AbstractService {
             throw new InvalidRequestException("Only recruiter own the job can create schedule");
         }
 
-        if (jobStage.getOrder() == 1) {
+        Stage stage = stageRepository.findById(stageId).orElseThrow(
+                () -> new ResourceNotFoundException("stage not found")
+        );
+
+        if (!job.getProcess().getStages().contains(stage)) {
+            throw new InvalidRequestException("stage not found in recruitment process of job");
+        }
+
+        if (stage.getOrder() == 1) {
             throw new InvalidRequestException("First stage cannot be scheduled");
         }
 
         Schedule schedule = scheduleMapper.toSchedule(request);
         schedule.setJob(job);
-        schedule.setJobStage(jobStage);
+//        schedule.setJobStage(jobStage);
+        schedule.setStage(stage);
 
         scheduleRepository.save(schedule);
 
@@ -63,10 +76,10 @@ public class RecruiterScheduleServiceImpl extends AbstractService {
     }
 
     @Transactional
-    public Page<ScheduleDto> getSchedules(Long jobId, Long jobStage, Pageable pageable) {
+    public Page<ScheduleDto> getSchedules(Long jobId, Long stageId, Pageable pageable) {
         pageable = ensureSortedPageable(pageable);
-        Page<Schedule> schedulePage = scheduleRepository.findByJobIdAndJobStageId(jobId, jobStage, pageable);
-
+//        Page<Schedule> schedulePage = scheduleRepository.findByJobIdAndJobStageId(jobId, jobStage, pageable);
+        Page<Schedule> schedulePage = scheduleRepository.findByJobIdAndStageId(jobId, stageId, pageable);
         return schedulePage.map(scheduleMapper::toScheduleDto);
     }
 
@@ -90,7 +103,7 @@ public class RecruiterScheduleServiceImpl extends AbstractService {
     public Page<InterviewDto> getInterviewsForSchedule(Long jobId, Long jobStage, Long scheduleId, Pageable pageable) {
         fetchSchedule(jobId, jobStage, scheduleId);
 
-        Page<Interview> interviewPage = interviewRepository.findByJobStageIdAndApplicationJobIdAndScheduleIsNull(jobStage, jobId, pageable);
+        Page<Interview> interviewPage = interviewRepository.findByStageIdAndApplicationJobIdAndScheduleIsNull(jobStage, jobId, pageable);
 
         return interviewPage.map(interviewMapper::toInterviewDto);
     }
@@ -101,7 +114,7 @@ public class RecruiterScheduleServiceImpl extends AbstractService {
         if (schedule.getJob().getStatus() != JobStatus.OPEN) {
             throw new InvalidRequestException("Job is not open for assigning interviews");
         }
-        if (schedule.getJobStage().getOrder() == 1) {
+        if (schedule.getStage().getOrder() == 1) {
             throw new InvalidRequestException("First stage cannot be assigned interviews");
         }
 
@@ -126,8 +139,8 @@ public class RecruiterScheduleServiceImpl extends AbstractService {
 
 
     @Transactional
-    public void acceptOrRejectInterview(Long jobId, Long jobStageId, Long scheduleId, Long interviewId, Boolean accepted) {
-        Schedule schedule = fetchSchedule(jobId, jobStageId, scheduleId);
+    public void acceptOrRejectInterview(Long jobId, Long stageId, Long scheduleId, Long interviewId, Boolean accepted) {
+        Schedule schedule = fetchSchedule(jobId, stageId, scheduleId);
         if (schedule.getJob().getStatus() != JobStatus.OPEN) {
             throw new InvalidRequestException("Job is not open for accepting or rejecting interviews");
         }
@@ -139,6 +152,7 @@ public class RecruiterScheduleServiceImpl extends AbstractService {
         if (interview.getSchedule() == null) {
             throw new InvalidRequestException("Interview is not assigned to a schedule");
         }
+
         if (interview.getStatus() != InterviewStatus.PROGRESS) {
             throw new InvalidRequestException("Interview is not in progress");
         }
@@ -150,15 +164,18 @@ public class RecruiterScheduleServiceImpl extends AbstractService {
             nextInterview.setApplication(interview.getApplication());
             nextInterview.setStatus(InterviewStatus.PROGRESS);
 
-            Integer nextOrderStage = interview.getJobStage().getOrder() + 1;
-            Optional<JobStage> optionalJobStage = jobStageRepository.findByJobIdAndOrder(jobId, nextOrderStage);
-            boolean isFinalStage = optionalJobStage.isEmpty();
+            int nextOrderStage = interview.getStage().getOrder() + 1;
+            Stage nextStage = schedule.getJob().getProcess().getStages()
+                    .stream()
+                    .filter(stage -> stage.getOrder() == nextOrderStage).findFirst()
+                    .orElse(null);
+            boolean isFinalStage = nextStage == null;
+
             if (isFinalStage) {
                 interview.getApplication().setStatus(ApplicationStatus.ACCEPTED);
                 interviewRepository.save(interview);
             } else {
-                JobStage nextJobStage = optionalJobStage.get();
-                nextInterview.setJobStage(nextJobStage);
+                nextInterview.setStage(nextStage);
                 nextInterview.setStatus(InterviewStatus.PROGRESS);
 
                 interviewRepository.save(interview);
@@ -175,10 +192,10 @@ public class RecruiterScheduleServiceImpl extends AbstractService {
     }
 
 
-    private Schedule fetchSchedule(Long jobId, Long jobStageId, Long scheduleId) {
-        return scheduleRepository.findByJobIdAndJobStageIdAndId(jobId, jobStageId, scheduleId).orElseThrow(
+    private Schedule fetchSchedule(Long jobId, Long stageId, Long scheduleId) {
+        return scheduleRepository.findByJobIdAndStageIdAndId(jobId, stageId, scheduleId).orElseThrow(
                 () -> new ResourceNotFoundException(
-                        String.format("Schedule with ID %d not found for job %d and stage %d", scheduleId, jobId, jobStageId)
+                        String.format("Schedule with ID %d not found for job %d and stage %d", scheduleId, jobId, stageId)
                 )
         );
     }
