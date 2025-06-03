@@ -1,5 +1,5 @@
+// Path: src/main/java/io/d4tzz/newrms/config/SecurityConfig.java
 package io.d4tzz.newrms.config;
-
 
 import io.d4tzz.newrms.security.*;
 import io.d4tzz.newrms.service.JwtService;
@@ -42,23 +42,31 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
                 .csrf(AbstractHttpConfigurer::disable)
-
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
-
                 .authorizeHttpRequests(authorizeRequests ->
                         authorizeRequests
                                 .requestMatchers("/css/**", "/js/**", "/favicon.ico").permitAll()
-                                .requestMatchers("/api/auth/**").permitAll()
+
+                                // 1. Các endpoint công khai của Candidate
+                                .requestMatchers("/api/auth/candidate/**").permitAll()
+
+                                // THÊM DÒNG NÀY ĐỂ CHO PHÉP ĐĂNG NHẬP ADMIN CÔNG KHAI
+                                .requestMatchers("/api/auth/admin/login").permitAll() // <-- THÊM DÒNG NÀY
+
+                                // 2. Các endpoint công khai của Recruiter (chỉ đăng nhập và refresh)
+                                .requestMatchers("/api/auth/recruiter/login", "/api/auth/recruiter/login/refresh").permitAll()
+
+                                // Dòng .requestMatchers("/api/auth/recruiter/signup").hasRole("ADMIN") đã được XÓA.
+                                // Endpoint này không còn tồn tại trong RecruiterAuthController nữa.
+
                                 .requestMatchers("/api/recruiter/**").hasRole("RECRUITER")
                                 .requestMatchers("/api/candidate/**").hasRole("CANDIDATE")
                                 .anyRequest().authenticated()
                 )
-
                 .exceptionHandling(exceptionHandler -> {
                     exceptionHandler.authenticationEntryPoint(authenticationEntryPoint());
                     exceptionHandler.accessDeniedHandler(accessDeniedHandler());
                 })
-
                 .oauth2Login(oauth2 -> {
                     oauth2
                             .authorizationEndpoint(authorization -> authorization
@@ -69,18 +77,13 @@ public class SecurityConfig {
                             )
                             .successHandler(oAuth2AuthenticationSuccessHandler);
                 })
-
                 .addFilterAfter(jwtAuthenticationFilter(), SecurityContextHolderFilter.class)
                 .formLogin(form ->
-                    form
-                            .loginPage("/admin/auth/login").permitAll()
-                            .loginProcessingUrl("/admin/login")
-                            .defaultSuccessUrl("/admin/management/dashboard", true)
-
-                )
-
-                ;
-
+                        form
+                                .loginPage("/admin/auth/login").permitAll()
+                                .loginProcessingUrl("/admin/login")
+                                .defaultSuccessUrl("/admin/management/dashboard", true)
+                );
         return http.build();
     }
 
@@ -126,7 +129,7 @@ public class SecurityConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
         config.setAllowedOrigins(List.of(FRONTEND_URL));
-        config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
         config.addAllowedHeader("*");
         config.setAllowCredentials(true);
 
