@@ -1,4 +1,3 @@
-// Path: src/main/java/io/d4tzz/newrms/config/SecurityConfig.java
 package io.d4tzz.newrms.config;
 
 import io.d4tzz.newrms.security.*;
@@ -47,20 +46,19 @@ public class SecurityConfig {
                         authorizeRequests
                                 .requestMatchers("/css/**", "/js/**", "/favicon.ico").permitAll()
 
-                                // 1. Các endpoint công khai của Candidate
-                                .requestMatchers("/api/auth/candidate/**").permitAll()
+                                // Các endpoint công khai của Applicant
+                                .requestMatchers("/api/auth/applicant/**").permitAll()
 
-                                // THÊM DÒNG NÀY ĐỂ CHO PHÉP ĐĂNG NHẬP ADMIN CÔNG KHAI
-                                .requestMatchers("/api/auth/admin/login").permitAll() // <-- THÊM DÒNG NÀY
-
-                                // 2. Các endpoint công khai của Recruiter (chỉ đăng nhập và refresh)
+                                // Các endpoint công khai của Recruiter (chỉ đăng nhập và refresh)
                                 .requestMatchers("/api/auth/recruiter/login", "/api/auth/recruiter/login/refresh").permitAll()
 
-                                // Dòng .requestMatchers("/api/auth/recruiter/signup").hasRole("ADMIN") đã được XÓA.
-                                // Endpoint này không còn tồn tại trong RecruiterAuthController nữa.
+                                // Endpoint để lấy thông tin profile của người dùng đã xác thực
+                                .requestMatchers("/api/auth/me").authenticated() // <-- THÊM DÒNG NÀY
 
+                                // Các endpoint dành cho Recruiter (bao gồm cả chức năng quản trị trước đây của Admin)
                                 .requestMatchers("/api/recruiter/**").hasRole("RECRUITER")
-                                .requestMatchers("/api/candidate/**").hasRole("CANDIDATE")
+                                // Các endpoint dành cho Applicant
+                                .requestMatchers("/api/applicant/**").hasRole("APPLICANT")
                                 .anyRequest().authenticated()
                 )
                 .exceptionHandling(exceptionHandler -> {
@@ -78,12 +76,7 @@ public class SecurityConfig {
                             .successHandler(oAuth2AuthenticationSuccessHandler);
                 })
                 .addFilterAfter(jwtAuthenticationFilter(), SecurityContextHolderFilter.class)
-                .formLogin(form ->
-                        form
-                                .loginPage("/admin/auth/login").permitAll()
-                                .loginProcessingUrl("/admin/login")
-                                .defaultSuccessUrl("/admin/management/dashboard", true)
-                );
+        ;
         return http.build();
     }
 

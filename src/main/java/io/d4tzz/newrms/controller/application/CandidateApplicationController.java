@@ -10,7 +10,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("api/candidate")
+@RequestMapping("api/applicant") // Đã đổi từ "api/candidate"
 @RequiredArgsConstructor
 public class CandidateApplicationController {
     private final CandidateApplicationService candidateApplicationService;
@@ -22,3 +22,4 @@ public class CandidateApplicationController {
         return ApiResponse.success(applicationDtoPage);
     }
 }
+

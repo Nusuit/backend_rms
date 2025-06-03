@@ -22,3 +22,4 @@ public interface CandidateAuthService {
 
     void logout(Long userId);
 }
+

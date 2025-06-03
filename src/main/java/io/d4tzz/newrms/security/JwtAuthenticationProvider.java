@@ -5,7 +5,6 @@ import io.d4tzz.newrms.service.JwtService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.AuthenticationServiceException;
-import org.springframework.security.authentication.CredentialsExpiredException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -28,7 +27,7 @@ public class JwtAuthenticationProvider implements AuthenticationProvider {
         try {
             claims = jwtService.validateAccessToken(auth.getToken());
         } catch (InvalidJsonWebTokenException e) {
-            System.out.println("Loi o day");
+            System.out.println("Loi o day"); // Giữ lại log debug nếu cần
             throw new AuthenticationServiceException(e.getMessage());
         }
 
@@ -40,7 +39,8 @@ public class JwtAuthenticationProvider implements AuthenticationProvider {
             authorities = Collections.singletonList(new SimpleGrantedAuthority("ROLE_" + role));
         }
 
-        return new JwtAuthentication(auth.getToken(), new JwtUserPrincipal(Long.parseLong(id)), authorities, true);
+        // SỬA ĐỔI: Truyền authorities vào constructor của JwtUserPrincipal
+        return new JwtAuthentication(auth.getToken(), new JwtUserPrincipal(Long.parseLong(id), authorities), authorities, true);
     }
 
     @Override
@@ -48,3 +48,4 @@ public class JwtAuthenticationProvider implements AuthenticationProvider {
         return JwtAuthentication.class.isAssignableFrom(authentication);
     }
 }
+

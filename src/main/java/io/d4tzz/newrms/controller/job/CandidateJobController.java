@@ -11,7 +11,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/api/candidate")
+@RequestMapping("/api/applicant") // Đã đổi từ /api/candidate
 public class CandidateJobController {
     private final CandidateJobServiceImpl candidateJobServiceImpl;
 
@@ -33,3 +33,4 @@ public class CandidateJobController {
 
 
 }
+

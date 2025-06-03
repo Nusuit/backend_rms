@@ -37,12 +37,12 @@ public class CandidateApplicationServiceImpl extends AbstractService implements 
     /*
      * Map Application to ApplicationDto
      * each ApplicationDto:
-     *  + application information (id, ...)
-     *  + jobDto:
-     *      + job information (id, ...)
-     *      + stages:
-     *          + interviewDto
-     *          + scheduleDto
+     * + application information (id, ...)
+     * + jobDto:
+     * + job information (id, ...)
+     * + stages:
+     * + interviewDto
+     * + scheduleDto
      */
     private ApplicationDto applicationToDto(Application application) {
         Job job = application.getJob();
@@ -100,3 +100,4 @@ public class CandidateApplicationServiceImpl extends AbstractService implements 
                 .build();
     }
 }
+

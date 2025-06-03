@@ -3,7 +3,7 @@ package io.d4tzz.newrms.controller.auth;
 
 import io.d4tzz.newrms.dto.ApiResponse;
 import io.d4tzz.newrms.dto.auth.*;
-import io.d4tzz.newrms.service.auth.CandidateAuthService;
+import io.d4tzz.newrms.service.auth.CandidateAuthService; // Giữ nguyên tên service
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -12,12 +12,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/api/auth/candidate")
+@RequestMapping("/api/auth/applicant") // Đã đổi từ /api/auth/candidate
 public class CandidateAuthController {
     private final CandidateAuthService candidateAuthService;
 
     private final String REFRESH_TOKEN_COOKIE_NAME = "refresh-token";
-    private final String REFRESH_TOKEN_COOKIE_PATH = "/api/auth/candidate/login/refresh";
+    private final String REFRESH_TOKEN_COOKIE_PATH = "/api/auth/applicant/login/refresh"; // Đã đổi từ /api/auth/candidate/login/refresh
 
     @Autowired
     public CandidateAuthController(CandidateAuthService candidateAuthService) {
@@ -39,7 +39,7 @@ public class CandidateAuthController {
 
     @PostMapping("/signup/resend-otp")
     ApiResponse<?> resendOtp(@RequestBody ResendOtpRequest request) {
-         candidateAuthService.resendOtp(request);
+        candidateAuthService.resendOtp(request);
 
         return ApiResponse.success(null, "Resend OTP through email successful");
     }
@@ -59,11 +59,15 @@ public class CandidateAuthController {
         String refreshToken = "";
 
         Cookie[] cookies = httpServletRequest.getCookies();
-        for (Cookie cookie : cookies) {
-            if (cookie.getName().equals(REFRESH_TOKEN_COOKIE_NAME)) {
-                refreshToken = cookie.getValue();
+        if (cookies != null) { // Thêm kiểm tra null cho cookies
+            for (Cookie cookie : cookies) {
+                if (cookie.getName().equals(REFRESH_TOKEN_COOKIE_NAME)) {
+                    refreshToken = cookie.getValue();
+                    break; // Thêm break sau khi tìm thấy cookie
+                }
             }
         }
+
 
         ResetAccessTokenResponse response = candidateAuthService.resetAccessToken(refreshToken);
         return ApiResponse.success(response);
@@ -83,10 +87,10 @@ public class CandidateAuthController {
         Cookie cookie = new Cookie(REFRESH_TOKEN_COOKIE_NAME, refreshToken);
         cookie.setPath(REFRESH_TOKEN_COOKIE_PATH);
         cookie.setHttpOnly(true);
-
+        // Cân nhắc thêm:
+        // cookie.setSecure(true); // Nếu dùng HTTPS
+        // cookie.setMaxAge(thời_gian_sống_bằng_giây);
         return cookie;
     }
 }
-
-
 

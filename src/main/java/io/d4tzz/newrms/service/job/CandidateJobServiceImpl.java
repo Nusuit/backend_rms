@@ -91,9 +91,18 @@ public class CandidateJobServiceImpl extends AbstractService implements Candidat
 //        interview.setJobStage(firstJobStage);
         interview.setStage(firstStage);
 
-        Schedule scheduleOfFirstJobStage = scheduleRepository.findByJobIdAndJobStageOrder(jobId, 1)
-                .stream().findFirst().orElseThrow();
-        interview.setSchedule(scheduleOfFirstJobStage);
+        // Kiểm tra xem có schedule nào cho stage đầu tiên của job này không
+        // Nếu không có, có thể cần tạo một schedule mặc định hoặc throw lỗi
+        List<Schedule> schedulesForFirstStage = scheduleRepository.findByJobIdAndJobStageOrder(jobId, 1);
+        Schedule scheduleOfFirstJobStage = schedulesForFirstStage.stream().findFirst().orElse(null); // Sử dụng .orElse(null) để tránh NoSuchElementException
+
+        if (scheduleOfFirstJobStage == null) {
+            // Xử lý trường hợp không tìm thấy schedule cho stage đầu tiên
+            // Ví dụ: throw new ResourceNotFoundException("No schedule found for the first stage of this job.");
+            // Hoặc tạo một schedule mặc định nếu logic cho phép
+            System.err.println("Warning: No schedule found for the first stage of job " + jobId + ". Interview will be created without a schedule.");
+        }
+        interview.setSchedule(scheduleOfFirstJobStage); // schedule có thể là null nếu không tìm thấy
 
         interviewRepository.save(interview);
 
@@ -151,7 +160,7 @@ public class CandidateJobServiceImpl extends AbstractService implements Candidat
 
     private Specification<Job> createSpecification(JobFilterDto filter) {
         String title = filter.getTitle();
-        String industry = filter.getIndustry();
+        // String industry = filter.getIndustry(); // Xóa hoặc điều chỉnh nếu Job không còn liên quan trực tiếp đến Industry
 
         /* Dam bao deadlineFrom va deadlineTo dong thoi khac null*/
         LocalDate deadlineFrom = filter.getDeadlineFrom();
@@ -168,9 +177,10 @@ public class CandidateJobServiceImpl extends AbstractService implements Candidat
         }
 
         return JobSpecification.hasTitle(title)
-                .and( JobSpecification.belongsToIndustry(industry) )
+                // .and( JobSpecification.belongsToIndustry(industry) ) // Xóa hoặc điều chỉnh
                 .and( JobSpecification.deadlineFrom(deadlineFrom) )
                 .and( JobSpecification.deadlineTo(deadlineTo) )
                 .and( JobSpecification.matchesSalaryRange(minSalary, maxSalary) );
     }
 }
+

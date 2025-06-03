@@ -8,7 +8,7 @@ import java.util.Collection;
 public class UsernamePasswordUserPrinciple implements UserDetails {
     private final String username;
     private final String password;
-    private final Long id;
+    private final Long id; // ID của người dùng (RecruiterAuthId)
     private final Collection<? extends GrantedAuthority> authorities;
 
     public UsernamePasswordUserPrinciple(String username, String password, Long id, Collection<? extends GrantedAuthority> authorities) {
@@ -37,3 +37,4 @@ public class UsernamePasswordUserPrinciple implements UserDetails {
         return this.id;
     }
 }
+

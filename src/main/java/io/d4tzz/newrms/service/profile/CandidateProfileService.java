@@ -75,3 +75,4 @@ public class CandidateProfileService extends AbstractService {
         return candidateMapper.toCandidateDto(candidate);
     }
 }
+

@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 @RestController
-@RequestMapping("/api/candidate")
+@RequestMapping("/api/applicant") // Đã đổi từ /api/candidate
 @RequiredArgsConstructor
 public class CandidateProfileController {
 
@@ -43,3 +43,4 @@ public class CandidateProfileController {
         return ApiResponse.success(candidateDto);
     }
 }
+

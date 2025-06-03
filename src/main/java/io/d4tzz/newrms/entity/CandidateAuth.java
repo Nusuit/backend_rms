@@ -17,7 +17,9 @@ import java.time.LocalDateTime;
 public class CandidateAuth {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    // Thay đổi GenerationType.IDENTITY thành SEQUENCE để có thể chỉ định ID trong mock data
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "candidate_auth_seq")
+    @SequenceGenerator(name = "candidate_auth_seq", sequenceName = "CANDIDATES_AUTH_SEQ", allocationSize = 1)
     @Column(name = "authId")
     private Long authId;
 
@@ -52,3 +54,4 @@ public class CandidateAuth {
     @Column(name = "otp_request_count", columnDefinition = "INT DEFAULT 0")
     private int otpAttempt;
 }
+

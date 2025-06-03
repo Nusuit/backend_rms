@@ -12,3 +12,4 @@ public interface CandidateJobService {
 
     ApplicationDto applyJob(Long jobId, ApplyJobRequest request);
 }
+

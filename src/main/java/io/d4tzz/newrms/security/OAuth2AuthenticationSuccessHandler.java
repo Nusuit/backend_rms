@@ -54,7 +54,7 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
                 CandidateAuth candidateAuth = new CandidateAuth();
                 candidateAuth.setEmail(email);
                 candidateAuth.setStatus(UserStatus.ACTIVE);
-                candidateAuth.setRole(roleRepository.findByName(RoleName.CANDIDATE));
+                candidateAuth.setRole(roleRepository.findByName(RoleName.APPLICANT)); // Đã đổi từ CANDIDATE
                 candidateAuth = candidateAuthRepository.save(candidateAuth);
 
                 candidateAuth = candidateAuthRepository.findById(candidateAuth.getAuthId()).orElseThrow();
@@ -79,3 +79,4 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
         }
     }
 }
+

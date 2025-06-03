@@ -81,10 +81,10 @@ public class RecruiterJobServiceImpl extends AbstractService implements Recruite
                     .stream()
                     .map(stage ->
                             StageDto.builder()
-                            .id(stage.getId())
-                            .name(stage.getName())
-                            .order(stage.getOrder())
-                            .build()
+                                    .id(stage.getId())
+                                    .name(stage.getName())
+                                    .order(stage.getOrder())
+                                    .build()
                     ).toList();
 
             return RecruitmentProcessDto.builder()
@@ -245,7 +245,7 @@ public class RecruiterJobServiceImpl extends AbstractService implements Recruite
 
     private Specification<Job> createSpecification(Long recruiterId, JobFilterDto filter) {
         String title = filter.getTitle();
-        String industry = filter.getIndustry();
+        // String industry = filter.getIndustry(); // Dòng này không còn cần thiết
 
         /*
          * Ensure both deadlineFrom and deadlineTo are not null
@@ -268,7 +268,7 @@ public class RecruiterJobServiceImpl extends AbstractService implements Recruite
 
         return JobSpecification.hasRecruiterId(recruiterId)
                 .and( JobSpecification.hasTitle(title) )
-                .and( JobSpecification.belongsToIndustry(industry) )
+                // .and( JobSpecification.belongsToIndustry(industry) ) // Dòng này đã gây lỗi và cần được loại bỏ
                 .and( JobSpecification.deadlineFrom(deadlineFrom) )
                 .and( JobSpecification.deadlineTo(deadlineTo) )
                 .and( JobSpecification.matchesSalaryRange(minSalary, maxSalary) );
