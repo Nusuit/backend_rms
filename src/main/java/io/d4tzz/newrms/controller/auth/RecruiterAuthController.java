@@ -4,7 +4,6 @@ package io.d4tzz.newrms.controller.auth;
 import io.d4tzz.newrms.dto.ApiResponse;
 import io.d4tzz.newrms.dto.auth.RecruiterLoginRequest;
 import io.d4tzz.newrms.dto.auth.RecruiterLoginResponse;
-// Import cho RecruiterSignupRequest và RecruiterSignupResponse đã được xóa
 import io.d4tzz.newrms.dto.auth.ResetAccessTokenResponse;
 import io.d4tzz.newrms.service.auth.RecruiterAuthService;
 import jakarta.servlet.http.Cookie;
@@ -27,10 +26,6 @@ public class RecruiterAuthController {
     public RecruiterAuthController(RecruiterAuthService recruiterAuthService) {
         this.recruiterAuthService = recruiterAuthService;
     }
-
-    // Phương thức signup() đã được XÓA khỏi đây.
-    // Việc tạo tài khoản Recruiter giờ đây sẽ do Admin quản lý,
-    // ví dụ: thông qua một giao diện quản trị hoặc thêm trực tiếp vào database.
 
     @PostMapping("/login")
     public ApiResponse<?> login(@Valid @RequestBody RecruiterLoginRequest request, HttpServletResponse httpServletResponse) {
@@ -66,8 +61,6 @@ public class RecruiterAuthController {
                     .success(false)
                     .message("Refresh token not found in cookies.")
                     .build();
-            // Hoặc có thể throw một exception cụ thể nếu muốn GlobalExceptionHandler xử lý
-            // throw new InvalidRequestException("Refresh token not found in cookies.");
         }
 
         ResetAccessTokenResponse response = recruiterAuthService.resetAccessToken(refreshToken);

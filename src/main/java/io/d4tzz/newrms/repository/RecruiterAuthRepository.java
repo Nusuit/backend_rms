@@ -8,5 +8,5 @@ import java.util.Optional;
 
 @Repository
 public interface RecruiterAuthRepository extends JpaRepository<RecruiterAuth, Long> {
-    Optional<RecruiterAuth> findByUsername(String username);
+    Optional<RecruiterAuth> findByEmail(String email); // Đã đổi từ findByUsername thành findByEmail
 }

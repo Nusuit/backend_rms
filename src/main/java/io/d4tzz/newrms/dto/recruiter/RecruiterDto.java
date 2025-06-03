@@ -11,7 +11,7 @@ import lombok.Getter;
 public class RecruiterDto {
     @JsonProperty("recruiterId")
     private Long id;
-    private String username; // Thường là email hoặc username đăng nhập
+    private String email; // Đã đổi từ username thành email
     private String name;
     private String description;
     private String profilePictureUrl;

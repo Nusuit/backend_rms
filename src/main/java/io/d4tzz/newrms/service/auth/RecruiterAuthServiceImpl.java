@@ -36,12 +36,12 @@ public class RecruiterAuthServiceImpl implements RecruiterAuthService {
     private final RoleRepository roleRepository;
     private final RecruiterRepository recruiterRepository;
 
-    private static final String SUPER_RECRUITER_USERNAME = "hacnguyet108@gmail.com";
+    private static final String SUPER_RECRUITER_EMAIL = "hacnguyet108@gmail.com"; // Đã đổi từ USERNAME thành EMAIL
 
     @Override
     public RecruiterLoginResponse login(RecruiterLoginRequest request) {
-        RecruiterAuth recruiterAuth = recruiterAuthRepository.findByUsername(request.getUsername()).orElseThrow(
-                () -> new UserNotFoundException("Username not found")
+        RecruiterAuth recruiterAuth = recruiterAuthRepository.findByEmail(request.getEmail()).orElseThrow( // Đã đổi findByUsername thành findByEmail
+                () -> new UserNotFoundException("Email not found") // Đã đổi Username thành Email
         );
 
         if (recruiterAuth.getStatus() != UserStatus.ACTIVE) {
@@ -56,11 +56,13 @@ public class RecruiterAuthServiceImpl implements RecruiterAuthService {
 
         String accessToken = jwtService.accessToken()
                 .subject(String.valueOf(recruiterAuth.getId()))
+                .email(recruiterAuth.getEmail()) // Thêm email vào JWT
                 .role(recruiterAuth.getRole().getName().toString())
                 .jwt();
 
         String refreshToken = jwtService.refreshToken()
                 .subject(String.valueOf(recruiterAuth.getId()))
+                .email(recruiterAuth.getEmail()) // Thêm email vào JWT
                 .role(recruiterAuth.getRole().getName().toString())
                 .jwt();
 
@@ -68,13 +70,13 @@ public class RecruiterAuthServiceImpl implements RecruiterAuthService {
         recruiterAuthRepository.save(recruiterAuth);
 
         // Kiểm tra tài khoản đặc biệt để đặt cờ isSuperRecruiter
-        boolean isSuperRecruiter = request.getUsername().equals(SUPER_RECRUITER_USERNAME);
+        boolean isSuperRecruiter = request.getEmail().equals(SUPER_RECRUITER_EMAIL); // Đã đổi username thành email
 
         return RecruiterLoginResponse.builder()
                 .accessToken(accessToken)
                 .refreshToken(refreshToken)
                 .tokenType("Bearer")
-                .isSuperRecruiter(isSuperRecruiter) // Đặt giá trị cho trường mới
+                .isSuperRecruiter(isSuperRecruiter)
                 .build();
     }
 
@@ -83,17 +85,21 @@ public class RecruiterAuthServiceImpl implements RecruiterAuthService {
         Map<String, String> payload = jwtService.validateRefreshToken(refreshToken);
 
         Long id = Long.parseLong(payload.get("sub"));
-        RecruiterAuth recruiterAuth = recruiterAuthRepository.findById(id).orElseThrow(
+        String email = payload.get("email"); // Lấy email từ payload
+
+        RecruiterAuth recruiterAuth = recruiterAuthRepository.findByEmail(email).orElseThrow( // Tìm theo email
                 () -> new UserNotFoundException("User not found")
         );
 
         String newAccessToken = jwtService.accessToken()
                 .subject(String.valueOf(recruiterAuth.getId()))
+                .email(recruiterAuth.getEmail())
                 .role(recruiterAuth.getRole().getName().toString())
                 .jwt();
 
         String newRefreshToken = jwtService.refreshToken()
                 .subject(String.valueOf(recruiterAuth.getId()))
+                .email(recruiterAuth.getEmail())
                 .role(recruiterAuth.getRole().getName().toString())
                 .jwt();
 
@@ -108,10 +114,10 @@ public class RecruiterAuthServiceImpl implements RecruiterAuthService {
     @Override
     @Transactional
     public RecruiterSignupResponse createRecruiter(RecruiterSignupRequest request) {
-        // Kiểm tra xem username đã tồn tại chưa
-        Optional<RecruiterAuth> existingRecruiter = recruiterAuthRepository.findByUsername(request.getUsername());
+        // Kiểm tra xem email đã tồn tại chưa
+        Optional<RecruiterAuth> existingRecruiter = recruiterAuthRepository.findByEmail(request.getEmail()); // Đã đổi findByUsername thành findByEmail
         if (existingRecruiter.isPresent()) {
-            throw new InvalidRequestException("Username already exists");
+            throw new InvalidRequestException("Email already exists"); // Đã đổi Username thành Email
         }
 
         // Lấy vai trò RECRUITER
@@ -122,24 +128,23 @@ public class RecruiterAuthServiceImpl implements RecruiterAuthService {
 
         // Tạo RecruiterAuth
         RecruiterAuth recruiterAuth = new RecruiterAuth();
-        recruiterAuth.setUsername(request.getUsername());
+        recruiterAuth.setEmail(request.getEmail()); // Đã đổi setUsername thành setEmail
         recruiterAuth.setPassword(passwordEncoder.encode(request.getPassword()));
         recruiterAuth.setRole(recruiterRole);
         recruiterAuth.setStatus(UserStatus.ACTIVE);
         recruiterAuth = recruiterAuthRepository.save(recruiterAuth);
 
         // Tạo Recruiter profile (liên kết với RecruiterAuth)
-        // Đảm bảo rằng Recruiter entity được tạo và lưu trữ đúng cách
         Recruiter recruiter = new Recruiter();
-        recruiter.setId(recruiterAuth.getId()); // ID của Recruiter là ID của RecruiterAuth
-        recruiter.setAuth(recruiterAuth); // Thiết lập mối quan hệ @OneToOne
+        recruiter.setId(recruiterAuth.getId());
+        recruiter.setAuth(recruiterAuth);
         recruiter.setName(request.getFirstName() + " " + request.getLastName());
         recruiter.setDescription("Recruiter account created by admin.");
-        recruiterRepository.save(recruiter); // Lưu Recruiter entity
+        recruiterRepository.save(recruiter);
 
         return RecruiterSignupResponse.builder()
                 .id(recruiterAuth.getId())
-                .username(recruiterAuth.getUsername())
+                .email(recruiterAuth.getEmail()) // Đã đổi username thành email
                 .role(recruiterAuth.getRole().getName().toString())
                 .name(recruiter.getName())
                 .build();

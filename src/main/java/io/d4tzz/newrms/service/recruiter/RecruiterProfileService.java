@@ -21,7 +21,7 @@ public class RecruiterProfileService extends AbstractService {
 
         return RecruiterDto.builder()
                 .id(recruiter.getId())
-                .username(recruiter.getAuth().getUsername()) // Lấy username từ RecruiterAuth
+                .email(recruiter.getAuth().getEmail()) // Đã đổi getUsername thành getEmail
                 .name(recruiter.getName())
                 .description(recruiter.getDescription())
                 .profilePictureUrl(recruiter.getProfilePictureUrl())

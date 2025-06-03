@@ -15,17 +15,16 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.Map;
 
-@RestController // Đảm bảo có annotation này
-@RequestMapping("/api/auth") // Đảm bảo đường dẫn chính xác
+@RestController
+@RequestMapping("/api/auth")
 @RequiredArgsConstructor
 public class UserController {
 
     private final CandidateProfileService candidateProfileService;
     private final RecruiterProfileService recruiterProfileService;
 
-    @GetMapping("/me") // Đảm bảo đường dẫn phương thức chính xác
+    @GetMapping("/me")
     public ApiResponse<?> getCurrentUserProfile(@AuthenticationPrincipal JwtUserPrincipal userPrincipal) {
-        // Thêm log ở đầu phương thức để xác nhận nó được gọi
         System.out.println("UserController: getCurrentUserProfile called for user ID: " + userPrincipal.getIdentity());
 
         if (userPrincipal == null) {
@@ -38,7 +37,7 @@ public class UserController {
                 .findFirst()
                 .orElse(null);
 
-        System.out.println("UserController: User ID: " + userId + ", Role: " + role); // Thêm log
+        System.out.println("UserController: User ID: " + userId + ", Role: " + role);
 
         if (role == null) {
             return ApiResponse.builder().success(false).message("User role not found").build();
@@ -47,19 +46,15 @@ public class UserController {
         try {
             if (RoleName.APPLICANT.name().equals(role)) {
                 CandidateDto candidateDto = candidateProfileService.getProfile();
-                // Nếu bạn muốn trả về isSuperRecruiter cho frontend, bạn cần thêm nó vào CandidateDto hoặc tạo một DTO mới
-                // hoặc trả về dưới dạng Map<String, Object>
                 return ApiResponse.success(candidateDto, "Applicant profile fetched successfully");
             } else if (RoleName.RECRUITER.name().equals(role)) {
                 RecruiterDto recruiterDto = recruiterProfileService.getProfile(userId);
                 // Kiểm tra xem đây có phải là Super Recruiter không
                 boolean isSuperRecruiter = false;
-                if (recruiterDto != null && "hacnguyet108@gmail.com".equals(recruiterDto.getUsername())) {
+                if (recruiterDto != null && "hacnguyet108@gmail.com".equals(recruiterDto.getEmail())) { // Đã đổi getUsername thành getEmail
                     isSuperRecruiter = true;
                 }
 
-                // Tạo một Map để trả về cả RecruiterDto và isSuperRecruiter
-                // Hoặc bạn có thể sửa RecruiterDto để bao gồm isSuperRecruiter
                 Map<String, Object> responsePayload = new java.util.HashMap<>();
                 responsePayload.put("user", recruiterDto);
                 responsePayload.put("isSuperRecruiter", isSuperRecruiter);
@@ -69,10 +64,9 @@ public class UserController {
                 return ApiResponse.builder().success(false).message("Unsupported user role").build();
             }
         } catch (Exception e) {
-            System.err.println("UserController: Error fetching user profile: " + e.getMessage()); // Log lỗi chi tiết
-            e.printStackTrace(); // In stack trace để debug
+            System.err.println("UserController: Error fetching user profile: " + e.getMessage());
+            e.printStackTrace();
             return ApiResponse.builder().success(false).message("Error fetching user profile: " + e.getMessage()).build();
         }
     }
 }
-    

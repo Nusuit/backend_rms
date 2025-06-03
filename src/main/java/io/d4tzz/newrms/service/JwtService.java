@@ -46,7 +46,7 @@ public class JwtService {
 
         return Jwts.builder()
                 .header()
-                    .type("jwt")
+                .type("jwt")
                 .and()
                 .subject(subject)
                 .claims(claims)
@@ -94,7 +94,7 @@ public class JwtService {
             return this;
         }
 
-        public JwtBuilder email(String email) {
+        public JwtBuilder email(String email) { // Thêm phương thức để thêm email claim
             claims.put("email", email);
             return this;
         }

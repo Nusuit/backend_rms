@@ -1,23 +1,28 @@
 package io.d4tzz.newrms.security;
 
-import org.springframework.security.core.GrantedAuthority; // Import này cần thiết
-import java.util.Collection; // Import này cần thiết
+import org.springframework.security.core.GrantedAuthority;
+import java.util.Collection;
 
 public class JwtUserPrincipal {
     private final Long id;
-    private final Collection<? extends GrantedAuthority> authorities; // Thêm trường này
+    private final String email; // Thêm trường email
+    private final Collection<? extends GrantedAuthority> authorities;
 
-    public JwtUserPrincipal(Long id, Collection<? extends GrantedAuthority> authorities) { // Cập nhật constructor
+    public JwtUserPrincipal(Long id, String email, Collection<? extends GrantedAuthority> authorities) { // Cập nhật constructor
         this.id = id;
-        this.authorities = authorities; // Gán authorities
+        this.email = email; // Gán email
+        this.authorities = authorities;
     }
 
     public long getIdentity() {
         return id;
     }
 
-    public Collection<? extends GrantedAuthority> getAuthorities() { // Thêm getter cho authorities
+    public String getEmail() { // Thêm getter cho email
+        return email;
+    }
+
+    public Collection<? extends GrantedAuthority> getAuthorities() {
         return authorities;
     }
 }
-

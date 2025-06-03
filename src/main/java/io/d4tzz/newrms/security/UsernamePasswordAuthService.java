@@ -1,7 +1,7 @@
 package io.d4tzz.newrms.security;
 
-import io.d4tzz.newrms.entity.RecruiterAuth; // Thay đổi từ Admin sang RecruiterAuth
-import io.d4tzz.newrms.repository.RecruiterAuthRepository; // Thay đổi từ AdminRepository
+import io.d4tzz.newrms.entity.RecruiterAuth;
+import io.d4tzz.newrms.repository.RecruiterAuthRepository;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -12,27 +12,26 @@ import java.util.Collections;
 
 @Service
 public class UsernamePasswordAuthService implements UserDetailsService {
-    private final RecruiterAuthRepository recruiterAuthRepository; // Thay đổi repository
+    private final RecruiterAuthRepository recruiterAuthRepository;
 
-    public UsernamePasswordAuthService(RecruiterAuthRepository recruiterAuthRepository) { // Thay đổi constructor
+    public UsernamePasswordAuthService(RecruiterAuthRepository recruiterAuthRepository) {
         this.recruiterAuthRepository = recruiterAuthRepository;
     }
 
     @Override
-    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        // Tìm RecruiterAuth theo username
-        RecruiterAuth recruiterAuth = recruiterAuthRepository.findByUsername(username).orElseThrow(
+    public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException { // Đã đổi username thành email
+        // Tìm RecruiterAuth theo email
+        RecruiterAuth recruiterAuth = recruiterAuthRepository.findByEmail(email).orElseThrow( // Đã đổi findByUsername thành findByEmail
                 () -> new UsernameNotFoundException("User not found")
         );
 
-        String role = recruiterAuth.getRole().getName().toString(); // Lấy tên role từ RecruiterAuth
+        String role = recruiterAuth.getRole().getName().toString();
 
         return new UsernamePasswordUserPrinciple(
-                recruiterAuth.getUsername(),
+                recruiterAuth.getEmail(), // Đã đổi username thành email
                 recruiterAuth.getPassword(),
-                recruiterAuth.getId(), // Lấy ID của RecruiterAuth
+                recruiterAuth.getId(),
                 Collections.singletonList(new SimpleGrantedAuthority("ROLE_" + role))
         );
     }
 }
-

@@ -22,25 +22,25 @@ public class JwtAuthenticationProvider implements AuthenticationProvider {
     public Authentication authenticate(Authentication authentication) throws AuthenticationException {
         JwtAuthentication auth = (JwtAuthentication) authentication;
 
-
         Map<String, String> claims;
         try {
             claims = jwtService.validateAccessToken(auth.getToken());
         } catch (InvalidJsonWebTokenException e) {
-            System.out.println("Loi o day"); // Giữ lại log debug nếu cần
+            System.out.println("Loi o day");
             throw new AuthenticationServiceException(e.getMessage());
         }
 
         String role = claims.get("role");
         String id = claims.get("sub");
+        String email = claims.get("email"); // Lấy email từ claims
 
         Collection<SimpleGrantedAuthority> authorities = null;
         if (role != null) {
             authorities = Collections.singletonList(new SimpleGrantedAuthority("ROLE_" + role));
         }
 
-        // SỬA ĐỔI: Truyền authorities vào constructor của JwtUserPrincipal
-        return new JwtAuthentication(auth.getToken(), new JwtUserPrincipal(Long.parseLong(id), authorities), authorities, true);
+        // SỬA ĐỔI: Truyền email vào constructor của JwtUserPrincipal
+        return new JwtAuthentication(auth.getToken(), new JwtUserPrincipal(Long.parseLong(id), email, authorities), authorities, true);
     }
 
     @Override
@@ -48,4 +48,3 @@ public class JwtAuthenticationProvider implements AuthenticationProvider {
         return JwtAuthentication.class.isAssignableFrom(authentication);
     }
 }
-
