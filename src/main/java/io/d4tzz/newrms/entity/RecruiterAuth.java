@@ -11,7 +11,10 @@ import lombok.Setter;
 @Table(name = "recruiters_auth")
 public class RecruiterAuth {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    // Thay đổi GenerationType.IDENTITY thành SEQUENCE để có thể chỉ định ID trong mock data
+    // và kiểm soát sequence rõ ràng hơn.
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "recruiter_auth_seq")
+    @SequenceGenerator(name = "recruiter_auth_seq", sequenceName = "RECRUITERS_AUTH_SEQ", allocationSize = 1)
     @Column(name = "recruiter_auth_id")
     private Long id;
 
@@ -29,3 +32,4 @@ public class RecruiterAuth {
     @Enumerated(EnumType.STRING)
     private UserStatus status;
 }
+

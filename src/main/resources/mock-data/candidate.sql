@@ -1,18 +1,3 @@
--- Xóa các sequence cũ nếu có để tránh lỗi khi chạy lại
--- Sử dụng cách DROP SEQUENCE an toàn hơn để tránh lỗi PLS-00103
-DECLARE
-seq_exists NUMBER;
-BEGIN
-SELECT COUNT(*) INTO seq_exists FROM ALL_SEQUENCES WHERE SEQUENCE_NAME = 'CANDIDATES_AUTH_SEQ';
-IF seq_exists > 0 THEN
-            EXECUTE IMMEDIATE 'DROP SEQUENCE CANDIDATES_AUTH_SEQ';
-END IF;
-END;
-/ -- Ký tự '/' trên một dòng riêng biệt là QUAN TRỌNG cho PL/SQL block
-
-    -- Tạo sequence mới
-CREATE SEQUENCE CANDIDATES_AUTH_SEQ START WITH 1 INCREMENT BY 1;
-
 -- Xóa các tài khoản Candidate cũ nếu có để script có thể chạy lại
 DELETE FROM CANDIDATES WHERE candidate_id IN (SELECT auth_id FROM CANDIDATES_AUTH WHERE email = 'candidate1@example.com');
 DELETE FROM CANDIDATES_AUTH WHERE email = 'candidate1@example.com';
@@ -49,8 +34,5 @@ VALUES (3, 'candidate3@example.com',
         1);
 INSERT INTO candidates (candidate_id, name) VALUES (3, 'Candidate Three');
 
--- Đặt lại sequence sau khi chèn thủ công để tránh xung đột ID
-ALTER SEQUENCE CANDIDATES_AUTH_SEQ RESTART WITH 4;
-
--- ALTER TABLE candidates_auth MODIFY (auth_id NUMBER GENERATED ALWAYS AS IDENTITY (START WITH 7));
--- Dòng này không cần thiết nữa.
+-- Dòng này đã gây lỗi và cần được loại bỏ hoàn toàn:
+-- ALTER SEQUENCE CANDIDATES_AUTH_SEQ RESTART WITH 4;
