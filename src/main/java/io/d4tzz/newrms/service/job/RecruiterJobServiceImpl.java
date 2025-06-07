@@ -108,9 +108,16 @@ public class RecruiterJobServiceImpl extends AbstractService implements Recruite
         }
 
         /*
-         * Validate processId
+         * Validate or auto-select processId
          */
         Long processId = request.getProcessId();
+        if (processId == null) {
+            // Lấy process đầu tiên trong hệ thống (hoặc có thể lọc theo recruiter nếu cần)
+            processId = recruitmentProcessRepository.findAll().stream()
+                .findFirst()
+                .map(RecruitmentProcess::getId)
+                .orElseThrow(() -> new ResourceNotFoundException("No recruitment process found"));
+        }
         RecruitmentProcess process = recruitmentProcessRepository.findById(processId).orElseThrow(
                 () -> new ResourceNotFoundException("Process not found")
         );
@@ -119,7 +126,9 @@ public class RecruiterJobServiceImpl extends AbstractService implements Recruite
          * Create new job
          */
         Job job = jobMapper.toJob(request);
-        job.setRecruiter( recruiterRepository.getReferenceById(recruiterId));
+        job.setRecruiter( recruiterRepository.findById(recruiterId).orElseThrow(
+                () -> new ResourceNotFoundException("Recruiter not found")
+        ));
         job.setProcess(process);
         job = jobRepository.save(job);
 
@@ -156,14 +165,20 @@ public class RecruiterJobServiceImpl extends AbstractService implements Recruite
 
         job.setSkills(jobSkills);
         job.setStages(jobStages);
+        jobRepository.save(job);
 
         /*
          * Create the schedule for first stage (default stage)
          */
         Stage firstStage = stages.stream().filter(stage -> stage.getOrder() == 1).findFirst().orElseThrow();
+        JobStage firstJobStage = jobStages.stream()
+                .filter(js -> js.getStage().equals(firstStage))
+                .findFirst()
+                .orElseThrow(() -> new ResourceNotFoundException("First job stage not found"));
+
         Schedule schedule = new Schedule();
         schedule.setJob(job);
-        schedule.setJobStage(jobStageRepository.findByJobIdAndOrder(job.getId(), 1).orElseThrow());
+        schedule.setJobStage(firstJobStage);
         schedule.setStage(firstStage);
         schedule.setName(firstStage.getName());
         scheduleRepository.save(schedule);
@@ -184,30 +199,48 @@ public class RecruiterJobServiceImpl extends AbstractService implements Recruite
 
         jobMapper.updatePartial(request, job);
 
-        job.getSkills().clear();
-        jobRepository.save(job);
-
-
-//        jobSkillRepository.deleteAll(skills); /* Khong biet tai sao khong chay duoc */
-        jobSkillRepository.deleteByJobId(jobId);
-
-        Set<JobSkill> jobSkills = new HashSet<>(request.getSkills().size());
-        for (UpdateJobRequest.JobSkillRequirement jobSkillRequirement : request.getSkills()) {
-            Long skillId = jobSkillRequirement.getSkillId();
-            boolean required = jobSkillRequirement.isRequired();
-
-            Skill skill = skillRepository.findById(skillId).orElseThrow(() -> new ResourceNotFoundException("Skill not found"));
-
-            JobSkill jobSkill = new JobSkill();
-            jobSkill.setJob(job);
-            jobSkill.setSkill(skill);
-            jobSkill.setRequired(required);
-
-            jobSkills.add(jobSkill);
+        // --- Manage JobSkills collection ---
+        // Create a temporary set of incoming skill IDs for efficient lookup
+        Set<Long> newSkillIds = new HashSet<>();
+        for (UpdateJobRequest.JobSkillRequirement reqSkill : request.getSkills()) {
+            newSkillIds.add(reqSkill.getSkillId());
         }
-        jobSkillRepository.saveAll(jobSkills);
 
-        job.setSkills(jobSkills);
+        // Create a list of JobSkills to remove (if they are in current but not in newSkillIds)
+        // Using an iterator to safely remove elements while iterating
+        job.getSkills().removeIf(jobSkill -> !newSkillIds.contains(jobSkill.getSkill().getId()));
+
+        // Add new JobSkills (if they are in newSkillIds but not in current)
+        // Also update existing ones if 'required' status can change
+        for (UpdateJobRequest.JobSkillRequirement reqSkill : request.getSkills()) {
+            Long skillId = reqSkill.getSkillId();
+            boolean required = reqSkill.isRequired();
+
+            // Check if this skill already exists in the job's skills
+            boolean found = false;
+            for (JobSkill existingJobSkill : job.getSkills()) {
+                if (existingJobSkill.getSkill().getId().equals(skillId)) {
+                    // Skill already exists, update if 'required' is different
+                    if (existingJobSkill.isRequired() != required) {
+                        existingJobSkill.setRequired(required);
+                    }
+                    found = true;
+                    break;
+                }
+            }
+
+            if (!found) {
+                // New skill, add it to the collection
+                Skill skill = skillRepository.findById(skillId)
+                        .orElseThrow(() -> new ResourceNotFoundException("Skill not found with ID: " + skillId));
+                JobSkill newJobSkill = new JobSkill();
+                newJobSkill.setJob(job);
+                newJobSkill.setSkill(skill);
+                newJobSkill.setRequired(required);
+                job.getSkills().add(newJobSkill); // Add to the managed collection directly
+            }
+        }
+        // --- End JobSkills collection management ---
 
         return jobMapper.toRecruiterJobDto(job, applicationRepository.countByJobId(jobId));
     }
@@ -242,6 +275,15 @@ public class RecruiterJobServiceImpl extends AbstractService implements Recruite
         return jobMapper.toRecruiterJobDto(job, applicationRepository.countByJobId(jobId));
     }
 
+    @Override
+    @Transactional(readOnly = true)
+    public RecruiterJobDto getJobDetail(Long jobId) {
+        Job job = jobRepository.findById(jobId).orElseThrow(
+                () -> new ResourceNotFoundException("Job not found with ID: " + jobId)
+        );
+        long applicationQuantity = applicationRepository.countByJobId(job.getId());
+        return jobMapper.toRecruiterJobDto(job, applicationQuantity);
+    }
 
     private Specification<Job> createSpecification(Long recruiterId, JobFilterDto filter) {
         String title = filter.getTitle();

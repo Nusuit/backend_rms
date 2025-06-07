@@ -45,20 +45,25 @@ public class SecurityConfig {
                 .authorizeHttpRequests(authorizeRequests ->
                         authorizeRequests
                                 .requestMatchers("/css/**", "/js/**", "/favicon.ico").permitAll()
-
-                                // Các endpoint công khai của Applicant
+                                // Public endpoints for OAuth2
+                                .requestMatchers("/oauth2/authorization/**").permitAll()
+                                
+                                // Public candidate endpoints
                                 .requestMatchers("/api/auth/applicant/**").permitAll()
 
-                                // Các endpoint công khai của Recruiter (chỉ đăng nhập và refresh)
+                                // Public recruiter login endpoints
                                 .requestMatchers("/api/auth/recruiter/login", "/api/auth/recruiter/login/refresh").permitAll()
+                                
+                                // Authenticated user endpoint 
+                                .requestMatchers("/api/auth/me").authenticated()
 
-                                // Endpoint để lấy thông tin profile của người dùng đã xác thực
-                                .requestMatchers("/api/auth/me").authenticated() // <-- THÊM DÒNG NÀY
-
-                                // Các endpoint dành cho Recruiter (bao gồm cả chức năng quản trị trước đây của Admin)
+                                // Recruiter endpoints
                                 .requestMatchers("/api/recruiter/**").hasRole("RECRUITER")
-                                // Các endpoint dành cho Applicant
-                                .requestMatchers("/api/applicant/**").hasRole("APPLICANT")
+                                
+                                // Protected applicant endpoints 
+                                .requestMatchers("/api/applicant/saved-jobs", "/api/applicant/saved-jobs/**").hasRole("APPLICANT")
+                                .requestMatchers("/api/applicant/jobs/*/applications", "/api/applicant/applications/**").hasRole("APPLICANT")
+                                
                                 .anyRequest().authenticated()
                 )
                 .exceptionHandling(exceptionHandler -> {
@@ -67,9 +72,6 @@ public class SecurityConfig {
                 })
                 .oauth2Login(oauth2 -> {
                     oauth2
-                            .authorizationEndpoint(authorization -> authorization
-                                    .baseUri("/api/oauth2/authorize")
-                            )
                             .redirectionEndpoint(redirection -> redirection
                                     .baseUri("/api/oauth2/login/**")
                             )

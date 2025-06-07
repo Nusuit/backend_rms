@@ -31,6 +31,22 @@ public class CandidateJobController {
         return ApiResponse.success(applicationDto);
     }
 
+    @GetMapping("/saved-jobs")
+    public ApiResponse<?> getSavedJobs(Pageable pageable) {
+        Page<CandidateJobDto> savedJobs = candidateJobServiceImpl.getSavedJobs(pageable);
+        return ApiResponse.success(savedJobs);
+    }
 
+    @PostMapping("/saved-jobs/{jobId}")
+    public ApiResponse<?> saveJob(@PathVariable Long jobId) {
+        candidateJobServiceImpl.saveJob(jobId);
+        return ApiResponse.success(null, "Job saved successfully");
+    }
+
+    @DeleteMapping("/saved-jobs/{jobId}") 
+    public ApiResponse<?> unsaveJob(@PathVariable Long jobId) {
+        candidateJobServiceImpl.unsaveJob(jobId);
+        return ApiResponse.success(null, "Job unsaved successfully");
+    }
 }
 

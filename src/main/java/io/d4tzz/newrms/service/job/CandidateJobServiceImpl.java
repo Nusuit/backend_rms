@@ -19,6 +19,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -32,6 +33,7 @@ public class CandidateJobServiceImpl extends AbstractService implements Candidat
     private final CandidateRepository candidateRepository;
     private final InterviewRepository interviewRepository;
     private final ScheduleRepository scheduleRepository;
+    private final SavedJobRepository savedJobRepository;
 
 
     @Override
@@ -157,6 +159,51 @@ public class CandidateJobServiceImpl extends AbstractService implements Candidat
                 .build();
     }
 
+    @Override
+    @Transactional
+    public Page<CandidateJobDto> getSavedJobs(Pageable pageable) {
+        Long candidateId = getUserIdentity();
+        Page<SavedJob> savedJobs = savedJobRepository.findByCandidateId(candidateId, pageable);
+        
+        return savedJobs.map(savedJob -> {
+            Job job = savedJob.getJob();
+            boolean applicable = applicationRepository.findByJobIdAndCandidateId(job.getId(), candidateId).isEmpty()
+                    && job.getStatus() == JobStatus.OPEN;
+            return jobMapper.toCandidateJobDto(job, applicable);
+        });
+    }
+
+    @Override
+    @Transactional 
+    public void saveJob(Long jobId) {
+        Long candidateId = getUserIdentity();
+        
+        // Check if already saved
+        if (savedJobRepository.findByJobIdAndCandidateId(jobId, candidateId).isPresent()) {
+            throw new InvalidRequestException("Job already saved");
+        }
+
+        // Get job and candidate
+        Job job = jobRepository.findById(jobId).orElseThrow(
+                () -> new ResourceNotFoundException("Job not found")
+        );
+        Candidate candidate = candidateRepository.findById(candidateId).orElseThrow(
+                () -> new ResourceNotFoundException("Candidate not found")
+        );
+
+        // Create and save the SavedJob
+        SavedJob savedJob = new SavedJob();
+        savedJob.setJob(job);
+        savedJob.setCandidate(candidate);
+        savedJobRepository.save(savedJob);
+    }
+
+    @Override
+    @Transactional
+    public void unsaveJob(Long jobId) {
+        Long candidateId = getUserIdentity();
+        savedJobRepository.deleteByJobIdAndCandidateId(jobId, candidateId);
+    }
 
     private Specification<Job> createSpecification(JobFilterDto filter) {
         String title = filter.getTitle();

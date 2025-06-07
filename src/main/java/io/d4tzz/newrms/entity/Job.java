@@ -1,6 +1,7 @@
 package io.d4tzz.newrms.entity;
 
 import io.d4tzz.newrms.entity.enums.JobStatus;
+import io.d4tzz.newrms.entity.enums.JobType;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -22,10 +23,18 @@ public class Job {
 
     private String title;
 
+    private String department;
+
+    @Enumerated(EnumType.STRING)
+    private JobType type;
+
+    @Column(length = 1020)
     private String description;
 
+    @Column(length = 1020)
     private String requirement;
 
+    @Column(length = 1020)
     private String benefit;
 
     private Long minSalary;
@@ -38,6 +47,7 @@ public class Job {
 
     private String Location;
 
+    @Column(length = 1020)
     private String note;
 
     @Enumerated(EnumType.STRING)
@@ -49,11 +59,11 @@ public class Job {
     @UpdateTimestamp
     private LocalDateTime updatedAt;
 
-    @OneToMany(fetch = FetchType.LAZY, mappedBy = "job")
+    @OneToMany(fetch = FetchType.LAZY, mappedBy = "job", cascade = CascadeType.ALL, orphanRemoval = true)
     @OrderBy
     private Set<JobSkill> skills;
 
-    @OneToMany(fetch = FetchType.LAZY, mappedBy = "job")
+    @OneToMany(fetch = FetchType.LAZY, mappedBy = "job", cascade = CascadeType.ALL, orphanRemoval = true)
     @OrderBy
     private Set<JobStage> stages;
 

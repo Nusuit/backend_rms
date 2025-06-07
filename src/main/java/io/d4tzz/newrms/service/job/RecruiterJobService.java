@@ -20,4 +20,6 @@ public interface RecruiterJobService {
     RecruiterJobDto updateJob(Long jobId, UpdateJobRequest request);
 
     RecruiterJobDto cancelJob(Long jobId, CancelJobRequest request);
+
+    RecruiterJobDto getJobDetail(Long jobId);
 }

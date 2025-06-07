@@ -1,6 +1,8 @@
 package io.d4tzz.newrms.dto.job;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import io.d4tzz.newrms.entity.enums.JobType;
 import lombok.Builder;
 import lombok.Getter;
 
@@ -11,13 +13,17 @@ import java.util.List;
 @Builder
 public class CreateJobRequest {
     private String title;
+    private String department;
+    private JobType type;
     private String description;
     private String requirement;
     private String benefit;
+    @JsonProperty("salaryMin")
     private Long minSalary;
+    @JsonProperty("salaryMax")
     private Long maxSalary;
     private String salaryCurrency;
-    @JsonFormat(pattern = "dd/MM/yyyy")
+    @JsonFormat(pattern = "yyyy-MM-dd")
     private LocalDate deadline;
     private String location;
 

@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Đăng nhập thành công</title>
+    <script th:inline="javascript">
+        window.onload = function() {
+            const accessToken = [[${accessToken}]];
+            const frontendUrl = [[${frontendUrl}]];
+
+            if (accessToken) {
+                // Redirect về frontend với token trong query params
+                const redirectUrl = `${frontendUrl}/oauth2/redirect-handler?token=${accessToken}`;
+                console.log("Redirecting to:", redirectUrl);
+                window.location.replace(redirectUrl);
+            } else {
+                console.error("No access token received");
+                window.location.replace(`${frontendUrl}/login?error=oauth_failed`);
+            }
+        };
+    </script>
+</head>
+<body>
+<p>Đang xử lý đăng nhập...</p>
+<noscript>
+    <p>Vui lòng bật JavaScript để hoàn tất quá trình đăng nhập.</p>
+</noscript>
+</body>
+</html>

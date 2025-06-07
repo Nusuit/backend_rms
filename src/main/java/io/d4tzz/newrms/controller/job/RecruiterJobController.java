@@ -46,6 +46,12 @@ public class RecruiterJobController {
         return ApiResponse.success(recruiterJobService.getRecruitmentProcess(name, pageable));
     }
 
+    @GetMapping("/jobs/{jobId}")
+    public ApiResponse<?> getJobDetail(@PathVariable Long jobId) {
+        RecruiterJobDto jobDto = recruiterJobService.getJobDetail(jobId);
+        return ApiResponse.success(jobDto);
+    }
+
     @PutMapping("/jobs/{jobId}")
     public ApiResponse<?> updateJob(@Valid @RequestBody UpdateJobRequest request, @PathVariable Long jobId) {
         RecruiterJobDto jobDto = recruiterJobService.updateJob(jobId, request);

@@ -11,5 +11,12 @@ public interface CandidateJobService {
     Page<CandidateJobDto> getJobs(JobFilterDto filter, Pageable pageable);
 
     ApplicationDto applyJob(Long jobId, ApplyJobRequest request);
+
+    // Saved jobs methods
+    Page<CandidateJobDto> getSavedJobs(Pageable pageable);
+    
+    void saveJob(Long jobId);
+    
+    void unsaveJob(Long jobId);
 }
 

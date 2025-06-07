@@ -9,6 +9,7 @@ import java.time.LocalDate;
 @Getter
 @Builder
 public class CandidateDto {
+    String email;
     String name;
     Gender gender;
     LocalDate dateOfBirth;

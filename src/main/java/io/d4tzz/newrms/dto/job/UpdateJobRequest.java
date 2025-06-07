@@ -17,7 +17,7 @@ public class UpdateJobRequest {
     private Long minSalary;
     private Long maxSalary;
     private String salaryCurrency;
-    @JsonFormat(pattern = "dd/MM/yyyy")
+    @JsonFormat(pattern = "yyyy-MM-dd")
     private LocalDate deadline;
     private String location;
 
