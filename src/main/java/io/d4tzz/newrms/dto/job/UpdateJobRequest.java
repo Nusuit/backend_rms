@@ -14,6 +14,7 @@ public class UpdateJobRequest {
     private String description;
     private String requirement;
     private String benefit;
+    private String responsibilities;
     private Long minSalary;
     private Long maxSalary;
     private String salaryCurrency;

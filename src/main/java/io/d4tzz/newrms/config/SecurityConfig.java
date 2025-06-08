@@ -44,25 +44,21 @@ public class SecurityConfig {
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .authorizeHttpRequests(authorizeRequests ->
                         authorizeRequests
-                                .requestMatchers("/css/**", "/js/**", "/favicon.ico").permitAll()
-                                // Public endpoints for OAuth2
-                                .requestMatchers("/oauth2/authorization/**").permitAll()
+                                .requestMatchers(
+                                        "/css/**", 
+                                        "/js/**", 
+                                        "/favicon.ico",
+                                        "/oauth2/authorization/**", 
+                                        "/api/auth/applicant/**", 
+                                        "/api/auth/recruiter/login", 
+                                        "/api/auth/recruiter/login/refresh"
+                                ).permitAll()
                                 
-                                // Public candidate endpoints
-                                .requestMatchers("/api/auth/applicant/**").permitAll()
-
-                                // Public recruiter login endpoints
-                                .requestMatchers("/api/auth/recruiter/login", "/api/auth/recruiter/login/refresh").permitAll()
-                                
-                                // Authenticated user endpoint 
-                                .requestMatchers("/api/auth/me").authenticated()
-
-                                // Recruiter endpoints
+                                .requestMatchers("/api/users/me").authenticated()
                                 .requestMatchers("/api/recruiter/**").hasRole("RECRUITER")
-                                
-                                // Protected applicant endpoints 
                                 .requestMatchers("/api/applicant/saved-jobs", "/api/applicant/saved-jobs/**").hasRole("APPLICANT")
                                 .requestMatchers("/api/applicant/jobs/*/applications", "/api/applicant/applications/**").hasRole("APPLICANT")
+                                .requestMatchers("/api/applicant/jobs").permitAll()
                                 
                                 .anyRequest().authenticated()
                 )
@@ -77,8 +73,7 @@ public class SecurityConfig {
                             )
                             .successHandler(oAuth2AuthenticationSuccessHandler);
                 })
-                .addFilterAfter(jwtAuthenticationFilter(), SecurityContextHolderFilter.class)
-        ;
+                .addFilterAfter(jwtAuthenticationFilter(), SecurityContextHolderFilter.class);
         return http.build();
     }
 

@@ -19,5 +19,9 @@ public class ApplicationDto {
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
+    // Candidate information
+    private String candidateName;
+    private String candidateEmail;
+
     private ApplicationJobDto job;
 }

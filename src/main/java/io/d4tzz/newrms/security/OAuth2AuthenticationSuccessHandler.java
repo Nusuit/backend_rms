@@ -52,32 +52,28 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
             OAuth2User oauth2User = oauth2Token.getPrincipal();
             String email = oauth2User.getAttribute("email");
             String providerUserId = oauth2User.getName();
+            String fullName = oauth2User.getAttribute("name"); // Get full name from Google
+            String givenName = oauth2User.getAttribute("given_name"); // Get first name
+            String familyName = oauth2User.getAttribute("family_name"); // Get last name
 
-            // Biến để lưu thông tin người dùng được xác định sau khi kiểm tra vai trò
+            // Variables to store user information after role check
             String userRoleName;
             String userIdForJwt;
             String userEmailForJwt;
             String userStatusForJwt;
-            String refreshTokenForJwt; // Để lưu refresh token vào đúng bảng
+            String refreshTokenForJwt;
 
-            // 1. Kiểm tra xem email này có phải là Recruiter đã tồn tại không
+            // 1. Check if email belongs to an existing Recruiter
             Optional<RecruiterAuth> existingRecruiterAuth = recruiterAuthRepository.findByEmail(email);
-
+            
             if (existingRecruiterAuth.isPresent()) {
-                // Nếu email là của Recruiter đã tồn tại, gán vai trò RECRUITER
+                // Handle recruiter login
                 RecruiterAuth recruiterAuth = existingRecruiterAuth.get();
                 userRoleName = recruiterAuth.getRole().getName().toString();
                 userIdForJwt = String.valueOf(recruiterAuth.getId());
                 userEmailForJwt = recruiterAuth.getEmail();
                 userStatusForJwt = recruiterAuth.getStatus().toString();
 
-                // Cập nhật trạng thái ACTIVE nếu chưa
-                if (recruiterAuth.getStatus() != UserStatus.ACTIVE) {
-                    recruiterAuth.setStatus(UserStatus.ACTIVE);
-                    recruiterAuthRepository.save(recruiterAuth);
-                }
-
-                // Luôn tạo refresh token mới và lưu vào bảng RecruiterAuth
                 refreshTokenForJwt = jwtService.refreshToken()
                         .subject(userIdForJwt)
                         .email(userEmailForJwt)
@@ -85,48 +81,36 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
                         .jwt();
                 recruiterAuth.setRefreshToken(refreshTokenForJwt);
                 recruiterAuthRepository.save(recruiterAuth);
-
-                // Ghi chú: Cấu trúc DB hiện tại của bạn chỉ liên kết OAuth2 với CandidateAuth.
-                // Nếu bạn muốn lưu thông tin liên kết OAuth2 cho Recruiter, bạn cần thay đổi schema:
-                // - Hoặc thêm recruiter_auth_id (nullable) vào bảng oauth2.
-                // - Hoặc tạo một bảng oauth2_recruiters riêng.
-                // Hiện tại, OAuth2 entry sẽ chỉ được tạo cho CandidateAuth.
-                // Nếu một recruiter đăng nhập OAuth2, bản ghi OAuth2 của họ sẽ không được lưu TẠI ĐÂY
-                // theo cấu trúc hiện tại của bảng OAuth2. Logic này chỉ dùng email để nhận diện vai trò.
-
             } else {
-                // 2. Nếu không phải Recruiter, kiểm tra xem đã là Candidate chưa
-                Optional<CandidateAuth> optionalCandidateAuth = candidateAuthRepository.findByEmail(email);
+                // 2. If not a recruiter, handle as candidate
                 CandidateAuth candidateAuth;
+                Optional<OAuth2> existingOAuth2 = oAuth2Repository.findByProviderUserIdAndProviderName(providerUserId, providerName);
 
-                if (optionalCandidateAuth.isPresent()) {
-                    candidateAuth = optionalCandidateAuth.get();
-                    if (candidateAuth.getStatus() != UserStatus.ACTIVE) {
-                        candidateAuth.setStatus(UserStatus.ACTIVE);
-                        candidateAuthRepository.save(candidateAuth);
-                    }
-                    // Cập nhật hoặc tạo OAuth2 nếu chưa tồn tại cho candidateAuth này
-                    Optional<OAuth2> existingOAuth2 = oAuth2Repository.findByProviderUserIdAndProviderName(providerUserId, providerName);
-                    if (!existingOAuth2.isPresent()) {
-                        OAuth2 newOAuth2 = new OAuth2();
-                        newOAuth2.setProviderUserId(providerUserId);
-                        newOAuth2.setProviderName(providerName);
-                        newOAuth2.setCandidateAuth(candidateAuth);
-                        oAuth2Repository.save(newOAuth2);
+                if (existingOAuth2.isPresent()) {
+                    // Existing OAuth2 user
+                    candidateAuth = existingOAuth2.get().getCandidateAuth();
+                    
+                    // Update candidate information if needed
+                    Candidate candidate = candidateRepository.findById(candidateAuth.getAuthId())
+                            .orElseThrow(() -> new IllegalStateException("Candidate not found for CandidateAuth"));
+                    if (candidate.getName() == null || candidate.getName().isEmpty()) {
+                        candidate.setName(fullName);
+                        candidateRepository.save(candidate);
                     }
                 } else {
-                    // 3. Nếu chưa phải Recruiter cũng chưa là Candidate, tạo CandidateAuth và Candidate mới
+                    // Create new candidate
                     candidateAuth = new CandidateAuth();
                     candidateAuth.setEmail(email);
                     candidateAuth.setStatus(UserStatus.ACTIVE);
-                    candidateAuth.setRole(roleRepository.findByName(RoleName.APPLICANT)); // Mặc định là APPLICANT
+                    candidateAuth.setRole(roleRepository.findByName(RoleName.APPLICANT));
                     candidateAuth = candidateAuthRepository.save(candidateAuth);
 
                     candidateAuth = candidateAuthRepository.findById(candidateAuth.getAuthId()).orElseThrow(
-                            () -> new IllegalStateException("CandidateAuth not found after saving, this should not happen."));
+                            () -> new IllegalStateException("CandidateAuth not found after saving"));
 
                     Candidate candidate = new Candidate();
                     candidate.setAuth(candidateAuth);
+                    candidate.setName(fullName);
                     candidateRepository.save(candidate);
 
                     OAuth2 oAuth2 = new OAuth2();
@@ -135,12 +119,12 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
                     oAuth2.setCandidateAuth(candidateAuth);
                     oAuth2Repository.save(oAuth2);
                 }
+
                 userRoleName = candidateAuth.getRole().getName().toString();
                 userIdForJwt = String.valueOf(candidateAuth.getAuthId());
                 userEmailForJwt = candidateAuth.getEmail();
                 userStatusForJwt = candidateAuth.getStatus().toString();
 
-                // Luôn tạo refresh token mới và lưu vào bảng CandidateAuth
                 refreshTokenForJwt = jwtService.refreshToken()
                         .subject(userIdForJwt)
                         .email(userEmailForJwt)
@@ -150,21 +134,21 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
                 candidateAuthRepository.save(candidateAuth);
             }
 
-            // Tạo JWT Access Token
+            // Create JWT Access Token
             String accessToken = jwtService.accessToken()
                     .subject(userIdForJwt)
                     .email(userEmailForJwt)
                     .role(userRoleName)
                     .jwt();
 
-            // Chuẩn bị context cho Thymeleaf template
+            // Prepare context for Thymeleaf template
             Context context = new Context();
             context.setVariable("accessToken", accessToken);
-            context.setVariable("refreshToken", refreshTokenForJwt); // Gửi refresh token (dù khuyến nghị dùng HTTP-only cookie)
+            context.setVariable("refreshToken", refreshTokenForJwt);
             context.setVariable("userRole", userRoleName);
             context.setVariable("frontendUrl", FRONTEND_URL);
 
-            // Render template và gửi về client
+            // Render template and send to client
             String htmlContent = templateEngine.process("oauth2_callback", context);
 
             resp.setContentType("text/html;charset=UTF-8");

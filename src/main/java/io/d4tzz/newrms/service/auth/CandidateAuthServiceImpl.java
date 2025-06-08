@@ -66,7 +66,7 @@ public class CandidateAuthServiceImpl implements CandidateAuthService {
         }
 
         String otp = OtpGenerator.generateOtp();
-        Role role = roleRepository.findByName(RoleName.APPLICANT); // Đã đổi từ CANDIDATE
+        Role role = roleRepository.findByName(RoleName.APPLICANT);
         CandidateAuth authUser = createNewAuthUser(request, otp, role);
         candidateAuthRepository.save(authUser);
 

@@ -39,8 +39,8 @@ public class Interview {
     private Stage stage;
 
     @CreationTimestamp
-    private LocalDateTime createdDate;
+    private LocalDateTime createdAt;
 
     @UpdateTimestamp
-    private LocalDateTime updatedDate;
+    private LocalDateTime updatedAt;
 }

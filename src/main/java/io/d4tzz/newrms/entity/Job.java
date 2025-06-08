@@ -37,6 +37,9 @@ public class Job {
     @Column(length = 1020)
     private String benefit;
 
+    @Column(length = 1000)
+    private String responsibilities;
+
     private Long minSalary;
 
     private Long maxSalary;

@@ -13,4 +13,6 @@ public interface InterviewRepository extends JpaRepository<Interview, Long> {
     Page<Interview> findByScheduleId(Long scheduleId, Pageable pageable);
 
     Optional<Interview> findByApplicationIdAndStageId(Long applicationId, Long stageId);
+
+    Page<Interview> findByApplicationJobRecruiterId(Long recruiterId, Pageable pageable);
 }

@@ -20,14 +20,6 @@ public class JobSpecification {
         return (root, query, cb) -> cb.like(cb.lower(root.get("title")), "%" + title.toLowerCase() + "%");
     }
 
-    // Phương thức belongsToIndustry đã được xóa vì Job entity không có mối quan hệ trực tiếp với Industry
-    // public static Specification<Job> belongsToIndustry(String industry) {
-    //     if (industry == null || industry.isEmpty()) {
-    //         return conjunction();
-    //     }
-    //     return (root, query, cb) -> cb.like(cb.lower(root.get("industry").get("name")), "%" + industry.toLowerCase() + "%");
-    // }
-
     public static Specification<Job> deadlineFrom(LocalDate from) {
         if (from == null) {
             return conjunction();

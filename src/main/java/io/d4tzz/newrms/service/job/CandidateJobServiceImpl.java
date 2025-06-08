@@ -35,21 +35,33 @@ public class CandidateJobServiceImpl extends AbstractService implements Candidat
     private final ScheduleRepository scheduleRepository;
     private final SavedJobRepository savedJobRepository;
 
+    private Long getCurrentUserId() {
+        try {
+            return getUserIdentity();
+        } catch (Exception e) {
+            return null;
+        }
+    }
 
     @Override
     public Page<CandidateJobDto> getJobs(JobFilterDto filter, Pageable pageable) {
-        Long candidateId = getUserIdentity();
+        try {
+            final Long candidateId = getCurrentUserId();
 
-        Specification<Job> jobSpecification = createSpecification(filter);
-        pageable = ensureSortedPageable(pageable);
+            Specification<Job> jobSpecification = createSpecification(filter);
+            pageable = ensureSortedPageable(pageable);
 
-        Page<Job> jobPage = jobRepository.findAll(jobSpecification, pageable);
+            Page<Job> jobPage = jobRepository.findAll(jobSpecification, pageable);
 
-        return jobPage.map(job -> {
-            boolean applicable =  applicationRepository.findByJobIdAndCandidateId(job.getId(), candidateId).isEmpty()
-                    && job.getStatus() == JobStatus.OPEN;
-            return jobMapper.toCandidateJobDto(job, applicable);
-        });
+            return jobPage.map(job -> {
+                boolean applicable = candidateId == null || 
+                    (applicationRepository.findByJobIdAndCandidateId(job.getId(), candidateId).isEmpty()
+                    && job.getStatus() == JobStatus.OPEN);
+                return jobMapper.toCandidateJobDto(job, applicable);
+            });
+        } catch (Exception e) {
+            throw new InvalidRequestException("Failed to fetch jobs: " + e.getMessage());
+        }
     }
 
 
@@ -93,18 +105,9 @@ public class CandidateJobServiceImpl extends AbstractService implements Candidat
 //        interview.setJobStage(firstJobStage);
         interview.setStage(firstStage);
 
-        // Kiểm tra xem có schedule nào cho stage đầu tiên của job này không
-        // Nếu không có, có thể cần tạo một schedule mặc định hoặc throw lỗi
         List<Schedule> schedulesForFirstStage = scheduleRepository.findByJobIdAndJobStageOrder(jobId, 1);
-        Schedule scheduleOfFirstJobStage = schedulesForFirstStage.stream().findFirst().orElse(null); // Sử dụng .orElse(null) để tránh NoSuchElementException
-
-        if (scheduleOfFirstJobStage == null) {
-            // Xử lý trường hợp không tìm thấy schedule cho stage đầu tiên
-            // Ví dụ: throw new ResourceNotFoundException("No schedule found for the first stage of this job.");
-            // Hoặc tạo một schedule mặc định nếu logic cho phép
-            System.err.println("Warning: No schedule found for the first stage of job " + jobId + ". Interview will be created without a schedule.");
-        }
-        interview.setSchedule(scheduleOfFirstJobStage); // schedule có thể là null nếu không tìm thấy
+        Schedule scheduleOfFirstJobStage = schedulesForFirstStage.stream().findFirst().orElse(null);
+        interview.setSchedule(scheduleOfFirstJobStage);
 
         interviewRepository.save(interview);
 
@@ -207,16 +210,18 @@ public class CandidateJobServiceImpl extends AbstractService implements Candidat
 
     private Specification<Job> createSpecification(JobFilterDto filter) {
         String title = filter.getTitle();
-        // String industry = filter.getIndustry(); // Xóa hoặc điều chỉnh nếu Job không còn liên quan trực tiếp đến Industry
-
-        /* Dam bao deadlineFrom va deadlineTo dong thoi khac null*/
+        /*
+         * Ensure both deadlineFrom and deadlineTo are not null
+         */
         LocalDate deadlineFrom = filter.getDeadlineFrom();
         LocalDate deadlineTo = filter.getDeadlineTo();
         if ((deadlineFrom == null) != (deadlineTo == null)) {
             throw new InvalidRequestException("Both start and end deadlines are required");
         }
 
-        /* Dam bao minSalary va maxSalary dong thoi khac null*/
+        /*
+         * Ensure both minSalary and maxSalary are not null
+         */
         Long minSalary = filter.getMinSalary();
         Long maxSalary = filter.getMaxSalary();
         if ((minSalary == null) != (maxSalary == null)) {
@@ -224,7 +229,6 @@ public class CandidateJobServiceImpl extends AbstractService implements Candidat
         }
 
         return JobSpecification.hasTitle(title)
-                // .and( JobSpecification.belongsToIndustry(industry) ) // Xóa hoặc điều chỉnh
                 .and( JobSpecification.deadlineFrom(deadlineFrom) )
                 .and( JobSpecification.deadlineTo(deadlineTo) )
                 .and( JobSpecification.matchesSalaryRange(minSalary, maxSalary) );

@@ -20,6 +20,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 import java.time.LocalDate;
 import java.util.HashSet;
@@ -28,6 +29,7 @@ import java.util.Set;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class RecruiterJobServiceImpl extends AbstractService implements RecruiterJobService {
 
     private final JobRepository jobRepository;
@@ -45,11 +47,14 @@ public class RecruiterJobServiceImpl extends AbstractService implements Recruite
     @Transactional
     public Page<RecruiterJobDto> getJobs(JobFilterDto filter, Pageable pageable) {
         Long recruiterId = getUserIdentity();
+        log.info("🔍 [JobService] Getting jobs for recruiter ID: {}", recruiterId);
 
         Specification<Job> jobSpecification = createSpecification(recruiterId, filter);
         pageable = ensureSortedPageable(pageable);
 
         Page<Job> jobPage = jobRepository.findAll(jobSpecification, pageable);
+        log.info("📊 [JobService] Query returned {} jobs out of {} total for recruiter {}", 
+                jobPage.getContent().size(), jobPage.getTotalElements(), recruiterId);
 
         return  jobPage.map(job -> {
             long applicationQuantity = applicationRepository.countByJobId(job.getId());
@@ -99,6 +104,7 @@ public class RecruiterJobServiceImpl extends AbstractService implements Recruite
     @Transactional
     public RecruiterJobDto createJob(CreateJobRequest request) {
         Long recruiterId = getUserIdentity();
+        log.info("🔍 [JobService] Creating job '{}' for recruiter ID: {}", request.getTitle(), recruiterId);
 
         /*
          * Validate salary
@@ -112,7 +118,6 @@ public class RecruiterJobServiceImpl extends AbstractService implements Recruite
          */
         Long processId = request.getProcessId();
         if (processId == null) {
-            // Lấy process đầu tiên trong hệ thống (hoặc có thể lọc theo recruiter nếu cần)
             processId = recruitmentProcessRepository.findAll().stream()
                 .findFirst()
                 .map(RecruitmentProcess::getId)
@@ -183,6 +188,7 @@ public class RecruiterJobServiceImpl extends AbstractService implements Recruite
         schedule.setName(firstStage.getName());
         scheduleRepository.save(schedule);
 
+        log.info("✅ [JobService] Job created successfully with ID: {} for recruiter: {}", job.getId(), recruiterId);
         return jobMapper.toRecruiterJobDto(job, 0L);
     }
 
@@ -265,8 +271,6 @@ public class RecruiterJobServiceImpl extends AbstractService implements Recruite
             if (application.getStatus() != ApplicationStatus.PROGRESS) continue;
 
             application.setStatus(ApplicationStatus.JOB_CANCELLED);
-            /* Gui email thong bao toi ung vien */
-
             applicationRepository.save(application);
         }
 
@@ -287,7 +291,6 @@ public class RecruiterJobServiceImpl extends AbstractService implements Recruite
 
     private Specification<Job> createSpecification(Long recruiterId, JobFilterDto filter) {
         String title = filter.getTitle();
-        // String industry = filter.getIndustry(); // Dòng này không còn cần thiết
 
         /*
          * Ensure both deadlineFrom and deadlineTo are not null
@@ -310,7 +313,6 @@ public class RecruiterJobServiceImpl extends AbstractService implements Recruite
 
         return JobSpecification.hasRecruiterId(recruiterId)
                 .and( JobSpecification.hasTitle(title) )
-                // .and( JobSpecification.belongsToIndustry(industry) ) // Dòng này đã gây lỗi và cần được loại bỏ
                 .and( JobSpecification.deadlineFrom(deadlineFrom) )
                 .and( JobSpecification.deadlineTo(deadlineTo) )
                 .and( JobSpecification.matchesSalaryRange(minSalary, maxSalary) );

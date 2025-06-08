@@ -17,8 +17,9 @@ public class JobDto {
     private Long id;
     private String title;
     private String description;
-    private String requirement;
-    private String benefit;
+    private String requirements;
+    private String benefits;
+    private String responsibilities;
     private Long minSalary;
     private Long maxSalary;
     private String salaryCurrency;

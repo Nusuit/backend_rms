@@ -1,4 +1,4 @@
-package io.d4tzz.newrms.utils; // Hoặc package khác tùy bạn
+package io.d4tzz.newrms.utils;
 
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 

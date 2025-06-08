@@ -9,5 +9,7 @@ import org.mapstruct.Mapping;
 public interface ApplicationMapper {
 
 //    @Mapping(target = "jobId", source = "job.id")
+    @Mapping(target = "candidateName", source = "candidate.name")
+    @Mapping(target = "candidateEmail", source = "candidate.auth.email")
     ApplicationDto toApplicationDto(Application application);
 }

@@ -142,6 +142,7 @@ CREATE TABLE jobs (
                       location VARCHAR2(1020 CHAR),
                       note VARCHAR2(1020 CHAR),
                       requirement VARCHAR2(1020 CHAR),
+                      responsibilities VARCHAR2(1000 CHAR),
                       salary_currency VARCHAR2(1020 CHAR),
                       status VARCHAR2(1020 CHAR) CHECK (status IN ('OPEN','CLOSED','CANCELED')),
                       title VARCHAR2(1020 CHAR),

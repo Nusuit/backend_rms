@@ -38,13 +38,18 @@ public class WebConfiguration implements WebMvcConfigurer {
 
     @Override
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
-        // Explicitly tell Spring MVC to NOT consider /api/** as a static resource path.
-        // This ensures that API requests are routed to controllers.
-        registry.addResourceHandler("/api/**").addResourceLocations("classpath:/nonexistent/");
-        // You can also consider adding other static resource handlers here if needed,
-        // for example: registry.addResourceHandler("/static/**").addResourceLocations("classpath:/static/");
+        // By default, Spring Boot serves static content from /static, /public, /resources, /META-INF/resources.
+        // We don't need to explicitly add handlers for these if we're following conventions,
+        // unless we have specific custom paths or need to disable caching, etc.
+        // The crucial part is to ensure API paths are NOT considered static resources.
 
-        // Default Spring Boot static resource handling (if not explicitly overridden)
-        // super.addResourceHandlers(registry); // Uncomment if you want to explicitly call super
+        // Standard static resource handling for frontend assets (if any beyond default locations)
+        registry.addResourceHandler("/css/**").addResourceLocations("classpath:/static/css/");
+        registry.addResourceHandler("/js/**").addResourceLocations("classpath:/static/js/");
+        registry.addResourceHandler("/images/**").addResourceLocations("classpath:/static/images/");
+        registry.addResourceHandler("/favicon.ico").addResourceLocations("classpath:/static/favicon.ico");
+
+        // If your frontend build output is in a specific folder like 'build' or 'dist' in the classpath
+        // registry.addResourceHandler("/**").addResourceLocations("classpath:/static/");
     }
 }

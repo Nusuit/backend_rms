@@ -74,4 +74,17 @@ public class RecruiterScheduleController {
 
         return ApiResponse.success();
     }
+
+    @PostMapping("/jobs/{jobId}/stages/{stageId}/interviews/{interviewId}")
+    public ApiResponse<?> acceptOrRejectInterviewWithoutSchedule(@PathVariable Long jobId, @PathVariable Long stageId,
+                                                  @PathVariable Long interviewId, @RequestParam("accept") boolean accept) {
+        recruiterScheduleServiceImpl.acceptOrRejectInterview(jobId, stageId, null, interviewId, accept);
+        return ApiResponse.success();
+    }
+
+    @GetMapping("/interviews")
+    public ApiResponse<?> getAllInterviews(Pageable pageable) {
+        Page<InterviewDto> interviewDtoPage = recruiterScheduleServiceImpl.getAllInterviews(pageable);
+        return ApiResponse.success(interviewDtoPage);
+    }
 }

@@ -10,6 +10,7 @@ import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -17,47 +18,29 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/api/auth/recruiter")
+@RequiredArgsConstructor
 public class RecruiterAuthController {
     private final RecruiterAuthService recruiterAuthService;
 
-    private final String REFRESH_TOKEN_COOKIE_NAME = "refresh-token-recruiter";
-    private final String REFRESH_TOKEN_COOKIE_PATH = "/api/auth/recruiter/login/refresh";
-
-    public RecruiterAuthController(RecruiterAuthService recruiterAuthService) {
-        this.recruiterAuthService = recruiterAuthService;
-    }
+    private static final String REFRESH_TOKEN_COOKIE_NAME = "refresh-token-recruiter";
+    private static final String REFRESH_TOKEN_COOKIE_PATH = "/api/auth/recruiter/login/refresh";
 
     @PostMapping("/login")
-    public ApiResponse<?> login(@Valid @RequestBody RecruiterLoginRequest request, HttpServletResponse httpServletResponse) {
+    public ApiResponse<RecruiterLoginResponse> login(@Valid @RequestBody RecruiterLoginRequest request, HttpServletResponse httpServletResponse) {
         RecruiterLoginResponse response = recruiterAuthService.login(request);
 
-        Cookie cookie = new Cookie(REFRESH_TOKEN_COOKIE_NAME, response.getRefreshToken());
-        cookie.setPath(REFRESH_TOKEN_COOKIE_PATH);
-        cookie.setHttpOnly(true);
-        // Cân nhắc thêm:
-        // cookie.setSecure(true); // Nếu dùng HTTPS
-        // cookie.setMaxAge(thời_gian_sống_bằng_giây);
+        Cookie cookie = createRefreshTokenCookie(response.getRefreshToken());
         httpServletResponse.addCookie(cookie);
 
         return ApiResponse.success(response, "Login successful");
     }
 
     @PostMapping("/login/refresh")
-    public ApiResponse<?> refreshAccessToken(HttpServletRequest httpServletRequest) {
-        String refreshToken = null;
-
-        Cookie[] cookies = httpServletRequest.getCookies();
-        if (cookies != null) {
-            for (Cookie cookie : cookies) {
-                if (REFRESH_TOKEN_COOKIE_NAME.equals(cookie.getName())) {
-                    refreshToken = cookie.getValue();
-                    break;
-                }
-            }
-        }
+    public ApiResponse<ResetAccessTokenResponse> refreshAccessToken(HttpServletRequest httpServletRequest) {
+        String refreshToken = extractRefreshTokenFromCookies(httpServletRequest.getCookies());
 
         if (refreshToken == null || refreshToken.isEmpty()) {
-            return ApiResponse.builder()
+            return ApiResponse.<ResetAccessTokenResponse>builder()
                     .success(false)
                     .message("Refresh token not found in cookies.")
                     .build();
@@ -65,5 +48,23 @@ public class RecruiterAuthController {
 
         ResetAccessTokenResponse response = recruiterAuthService.resetAccessToken(refreshToken);
         return ApiResponse.success(response);
+    }
+
+    private Cookie createRefreshTokenCookie(String refreshToken) {
+        Cookie cookie = new Cookie(REFRESH_TOKEN_COOKIE_NAME, refreshToken);
+        cookie.setPath(REFRESH_TOKEN_COOKIE_PATH);
+        cookie.setHttpOnly(true);
+        return cookie;
+    }
+
+    private String extractRefreshTokenFromCookies(Cookie[] cookies) {
+        if (cookies != null) {
+            for (Cookie cookie : cookies) {
+                if (REFRESH_TOKEN_COOKIE_NAME.equals(cookie.getName())) {
+                    return cookie.getValue();
+                }
+            }
+        }
+        return null;
     }
 }
